@@ -66,6 +66,7 @@ GameRenderer::GameRenderer(Configuration conf)
   try {
     auto fs = cycles_resources::getResourceFile("resources/SAIBA-45.ttf");
     font.loadFromMemory(fs.begin(), fs.size());
+
   } catch (const std::runtime_error &e) {
     spdlog::warn("No font loaded. Text rendering may not work correctly.");
   }
@@ -158,7 +159,7 @@ void GameRenderer::renderPlayers(std::shared_ptr<Game> game) {
   else
     window.draw(sf::Sprite(renderTexture.getTexture()));
   for (const auto &[id, player] : game->getPlayers()) {
-    sf::Text nameText(player.name, font, 30);
+    sf::Text nameText(player.name, font, 15);
     nameText.setFillColor(sf::Color::White);
     nameText.setOutlineThickness(2);
     nameText.setOutlineColor(sf::Color::Black);

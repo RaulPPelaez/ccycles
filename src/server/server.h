@@ -1,32 +1,54 @@
 #pragma once
+#include "game_logic.h"
+#include "configuration.hpp"
 #include "api.h"
 #include <SFML/Main.hpp>
-#include <list>
-
+#include <spdlog/spdlog.h>
 namespace cycles_server {
 using cycles::Direction;
 using cycles::Id;
 
-struct Player {
-  sf::Vector2i position;
-  std::list<sf::Vector2i> tail;
-  sf::Color color;
-  std::string name;
-  Id id;
-  Player() : id(std::rand()) {}
+// Server Logic
+class GameServer
+{
+  sf::TcpListener listener;
+  std::map<Id, std::shared_ptr<sf::TcpSocket>> clientSockets;
+  std::mutex serverMutex;
+  std::shared_ptr<Game> game;
+  const Configuration conf;
+  bool running;
+
+public:
+  GameServer(std::shared_ptr<Game> game, Configuration conf);
+
+  ~GameServer(){
+    stop();
+    spdlog::info("Server stopped.");
+  }
+
+  void run();
+
+  inline void stop() { running = false; }
+
+  inline int getFrame() const { return frame; }
+
+  inline void setAcceptingClients(bool accepting) { acceptingClients = accepting; }
+
+  void acceptClients();
+
+private:
+  int frame = 0;
+  const int max_client_communication_time = 50; // ms
+
+  bool acceptingClients = true;
+
+  void checkPlayers();
+
+  auto receiveClientInput(auto clientSockets);
+
+  auto sendGameState(auto clientSockets);
+
+  void gameLoop();
 };
 
-
-struct Configuration {
-
-  int maxClients = 60;
-  int gridWidth = 100;
-  int gridHeight = 100;
-  int gameWidth = 1000;
-  int gameHeight = 1000;
-  int gameBannerHeight = 100;
-  float cellSize = 10;
-  bool enablePostProcessing = false;
-  Configuration(std::string configPath);
-};
 } // namespace cycles_server
