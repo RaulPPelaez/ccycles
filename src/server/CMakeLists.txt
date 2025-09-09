@@ -13,13 +13,15 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(yaml-cpp)
 
 add_library(configuration configuration.cpp configuration.hpp)
+target_link_libraries(configuration PUBLIC yaml-cpp::yaml-cpp)
+
 add_library(game_logic game_logic.cpp game_logic.h)
 add_library(renderer renderer.cpp)
 target_link_libraries(renderer PRIVATE resources::rc)
 
 add_library(server_backend server_backend.cpp)
+target_link_libraries(server_backend PUBLIC game_logic configuration)
 
-target_link_libraries(configuration PUBLIC yaml-cpp::yaml-cpp)
 
 add_executable(server server.cpp)
-target_link_libraries(server PUBLIC game_logic configuration renderer server_backend)
+target_link_libraries(server PUBLIC renderer server_backend)
