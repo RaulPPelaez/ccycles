@@ -80,6 +80,7 @@ config_file is the path to a yaml file containing some server options. The follo
 		gridWidth: 100
 		maxClients: 60
 		enablePostProcessing: false
+		
 The option enablePostProcessing is used to enable or disable the fancy graphic effects. If you are seeing weird graphical glitches you might want to disable the post processing.
 To start a client using the example bot, run the following command:
 

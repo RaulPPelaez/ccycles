@@ -3,24 +3,9 @@
 Writing a bot
 -------------
 
-To write a bot, you need to use the :cpp:class:`cycles::Connection` class to communicate with the server.
-The bot code should continuously read the game state from the server and respond with the desired action by calling :cpp:func:`cycles::Connection::receiveGameState` and :cpp:func:`cycles::Connection::sendMove` respectively.
+To write a bot, you have the following API functions available:
 
-An example of a bot that moves in a random direction is provided in the `src/client/client_randomio.cpp` file.
-
-.. doxygenclass:: cycles::Connection
-   :members:
-
-The receive method will return an instance of :cpp:class:`cycles::GameState` that contains the current game state.
-
-.. doxygenstruct:: cycles::GameState
-   :members:
-
-.. doxygenstruct:: cycles::Player
-   :members:
-
-.. doxygentypedef:: cycles::Id      
-
+.. doxygenfile:: c_api.h
 
 Example
 *******
@@ -73,11 +58,13 @@ A simple bot that always moves north is shown below:
 		return 0;
 		}
 
-A more sophisticated example can be found in the `src/client/client_randomio.cpp` file.
+A more sophisticated example can be found in the `src/client/client_c_simple.c` file.
 
 
 Other utilities
 ---------------
 
 
-.. doxygenfile:: utils.h
+.. doxygenfile:: c_utils.h
+
+		 

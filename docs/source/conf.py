@@ -13,7 +13,7 @@ author = "Raul"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
-primary_domain = "cpp"
+primary_domain = "c"
 extensions = ["breathe"]
 
 # Breathe Configuration
