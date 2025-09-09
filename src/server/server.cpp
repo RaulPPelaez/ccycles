@@ -14,7 +14,6 @@ int main(int argc, char *argv[]) {
 #if SPDLOG_ACTIVE_LEVEL == SPDLOG_LEVEL_TRACE
   spdlog::set_level(spdlog::level::debug);
 #endif
-  spdlog::set_level(spdlog::level::debug);
   std::srand(static_cast<unsigned int>(std::time(nullptr)));
   const std::string config_path = argc > 1 ? argv[1] : "config.yaml";
   const Configuration conf(config_path);
