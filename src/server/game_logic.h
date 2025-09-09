@@ -1,5 +1,6 @@
 #pragma once
-#include "server.h"
+#include "configuration.hpp"
+#include "player.hpp"
 #include <map>
 #include <mutex>
 #include <random>
@@ -7,7 +8,8 @@
 #include <vector>
 
 namespace cycles_server {
-
+using cycles::Direction;
+using cycles::Id;
 // Game Logic
 class Game {
   const Configuration conf;
@@ -45,13 +47,11 @@ public:
   bool isGameOver() { return gameStarted && players.size() <= 1; }
 
 private:
-
   Id &getCell(int x, int y) { return grid[y * conf.gridWidth + x]; }
 
   bool legalMove(sf::Vector2i newPos);
 
   std::set<Id> checkCollisions(std::map<Id, sf::Vector2i> newPositions);
-
 };
 
 } // namespace cycles_server
