@@ -20,6 +20,8 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 include(CMakeRC)
 # Add everything under root_of_project/resources to the resources target
 file(GLOB_RECURSE RESOURCES RELATIVE ${CMAKE_SOURCE_DIR} "${CMAKE_SOURCE_DIR}/resources/*")
@@ -31,6 +33,7 @@ foreach(RESOURCE ${RESOURCES})
 endforeach()
 cmrc_add_resource_library(resources ALIAS resources::rc NAMESPACE cycles_resources ${RESOURCES})
 
+add_subdirectory(third_party)
 add_subdirectory(src)
 enable_testing() # This line allows to call ctest after compilation
 add_subdirectory(tests)
