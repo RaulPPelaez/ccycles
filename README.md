@@ -1,8 +1,8 @@
-## Cycles++: A C++ multiplayer game 
+## CCycles: A C multiplayer game 
 
-**You can find the online documentation [here](https://raulppelaez.github.io/cyclespp/).**
+**You can find the online documentation [here](https://raulppelaez.github.io/ccycles/).**
 
-This is a C++ project with documentation using Doxygen+Sphinx+breathe. The project is built using CMake.
+This is a C project with documentation using Doxygen+Sphinx+breathe. The project is built using CMake.
 
 ### Prerequisites
 
