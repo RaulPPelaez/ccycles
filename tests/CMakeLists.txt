@@ -20,4 +20,3 @@ target_link_libraries(
   configuration
 )
 gtest_discover_tests(test_game_logic)
-#add_test(NAME test_game_logic COMMAND test_game_logic)
