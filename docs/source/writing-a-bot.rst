@@ -12,50 +12,54 @@ Example
 
 A simple bot that always moves north is shown below:
 
-.. code-block:: cpp
+.. code-block:: c
 
-		#include "api.h"
-		#include "utils.h"
-		#include <string>
-		#include <iostream>
+		#include "c_api.h"
+		#include <stdio.h>
+		#include <stdlib.h>
 
-		using namespace cycles;
+		#define HOST "127.0.0.1"
 
-		class BotClient {
-		  Connection connection;
-		  std::string name;
-		  GameState state;
-
-		  void sendMove() {
-		    connection.sendMove(Direction::north);
-		  }
-
-		  void receiveGameState() {
-		    state = connection.receiveGameState();
-		    std::cout<<"There are "<<state.players.size()<<" players"<<std::endl;
-		  }
+		int main(int argc, char *argv[]) {
+		  // Get the port from the environment variable CYCLES_PORT
+		  const char *PORT = getenv("CYCLES_PORT");
+		  const char *name = argc > 1 ? argv[1] : "NorthBot";
 		  
-		public:
-		  BotClient(const std::string &botName) : name(botName) {
-		    connection.connect(name);
-		    if (!connection.isActive()) {
-		      exit(1);
-		    }
+		  if (PORT == NULL) {
+		    fprintf(stderr, "Environment variable CYCLES_PORT not set.\n");
+		    return EXIT_FAILURE;
 		  }
 
-		  void run() {
-		    while (connection.isActive()) {
-		      receiveGameState();
-		      sendMove();
-		    }
+		  Connection conn;
+		  if (cycles_connect(name, HOST, PORT, &conn) < 0) {
+		    fprintf(stderr, "Connection failed.\n");
+		    return EXIT_FAILURE;
 		  }
 
-		};
+		  printf("Client connected as %s\n", conn.name);
 
-		int main() {
-		  BotClient bot("northton");
-		  bot.run();
-		return 0;
+		  // Game loop
+		  for (;;) {
+		    GameState gs;
+		    if (cycles_recv_game_state(conn.sock, &gs) < 0) {
+		      fprintf(stderr, "Failed to receive game state.\n");
+		      break;
+		    }
+		    
+		    printf("Frame %u: %u players\n", gs.frame_number, gs.player_count);
+		    
+		    // Always move north
+		    if (cycles_send_move_i32(&conn, north) < 0) {
+		      fprintf(stderr, "Failed to send move.\n");
+		      free_game_state(&gs);
+		      break;
+		    }
+		    
+		    free_game_state(&gs);
+		  }
+
+		  cycles_disconnect(&conn);
+		  return EXIT_SUCCESS;
 		}
 
 A more sophisticated example can be found in the `src/client/client_c_simple.c` file.
