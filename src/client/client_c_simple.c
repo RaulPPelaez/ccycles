@@ -35,12 +35,8 @@ Direction decide_move(const GameState *state, const Player *me,
     if (attempts >= MAX_ATTEMPTS) {
       ulog_error("%s: Failed to find a valid move after %d attempts\n",
                  (me && me->name) ? me->name : "player", MAX_ATTEMPTS);
-      /* Hard exit mirrors original behavior; consider returning a default
-       * instead. */
-      exit(EXIT_FAILURE);
+      return north; // Give up and return a default direction
     }
-
-    /* Upper bound of proposal domain (inclusive), adding inertia bias. */
     int upper = (NUM_DIRECTIONS - 1) +
                 (int)floorf(inertia * inertial_damping + 0.0001f);
     if (upper < (NUM_DIRECTIONS - 1))
@@ -49,8 +45,6 @@ Direction decide_move(const GameState *state, const Player *me,
     int proposal = rand_int_inclusive(rng_state, upper);
 
     if (proposal >= NUM_DIRECTIONS) {
-      /* Inertia path: try to keep previous direction.
-         If that fails this iteration, kill inertia on subsequent attempts. */
       proposal = (int)previous_direction;
       inertial_damping = 0.0f;
     }
@@ -58,7 +52,8 @@ Direction decide_move(const GameState *state, const Player *me,
     attempts++;
   } while (!is_valid_move(state, position, direction));
   Vec2i dv = get_direction_vector(direction);
-  ulog_debug("%s: Valid move after %d attempt%s, from (%d,%d) to (%d,%d) in frame "
+  ulog_debug(
+      "%s: Valid move after %d attempt%s, from (%d,%d) to (%d,%d) in frame "
       "%u\n",
       (me && me->name) ? me->name : "player", attempts,
       attempts == 1 ? "" : "s", position.x, position.y, position.x + dv.x,
@@ -82,8 +77,8 @@ int main(int argc, char *argv[]) {
   ulog_debug("Ready to use Sockets");
 
   Connection conn;
-
   if (cycles_connect(name, HOST, PORT, &conn) < 0) {
+    ulog_error("connect() failed. (%d)", GETSOCKETERRNO());
     return EXIT_FAILURE;
   }
   // Now the client can enter the game loop
