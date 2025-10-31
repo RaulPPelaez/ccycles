@@ -10,7 +10,6 @@ FetchContent_MakeAvailable(googletest)
 
 include(GoogleTest)
 
-
 add_executable(test_game_logic  test_game_logic.cpp)
 target_include_directories(test_game_logic PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(
@@ -20,3 +19,15 @@ target_link_libraries(
   configuration
 )
 gtest_discover_tests(test_game_logic)
+
+add_executable(test_c_api test_c_api.cpp)
+target_include_directories(test_c_api PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/third_party)
+target_link_libraries(
+  test_c_api
+  GTest::gtest_main
+  c_api
+  server_backend
+  game_logic
+  configuration
+)
+gtest_discover_tests(test_c_api)
