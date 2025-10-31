@@ -35,5 +35,5 @@ target_link_libraries(cserver_lib PUBLIC
 )
 
 # C server executable
-add_executable(cserver server_main.c)
-target_link_libraries(cserver PRIVATE cserver_lib)
+add_executable(server server_main.c)
+target_link_libraries(server PRIVATE cserver_lib)
