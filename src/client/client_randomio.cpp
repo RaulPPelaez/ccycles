@@ -1,5 +1,5 @@
-#include "api.h"
-#include "utils.h"
+#include "api.hpp"
+#include "utils.hpp"
 #include <iostream>
 #include <random>
 #include <spdlog/spdlog.h>
@@ -98,7 +98,6 @@ public:
       sendMove();
     }
   }
-
 };
 
 int main(int argc, char *argv[]) {

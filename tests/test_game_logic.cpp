@@ -1,5 +1,5 @@
 // GTest tests for game logic
-#include "server/game_logic.h"
+#include "server/game_logic.hpp"
 #include "gtest/gtest.h"
 #include <fstream>
 using cycles::Id;

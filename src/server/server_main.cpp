@@ -1,6 +1,6 @@
-#include "server.h"
-#include "game_logic.h"
-#include "renderer.h"
+#include "game_logic.hpp"
+#include "renderer.hpp"
+#include "server.hpp"
 #include <SFML/Network.hpp>
 #include <memory>
 #include <spdlog/spdlog.h>

@@ -1,7 +1,7 @@
 #include "c_api.h"
 #include "server/configuration.hpp"
-#include "server/game_logic.h"
-#include "server/server.h"
+#include "server/game_logic.hpp"
+#include "server/server.hpp"
 #include <chrono>
 #include <cstdlib>
 #include <fstream>

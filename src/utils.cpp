@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "utils.hpp"
 namespace cycles {
 std::string socketErrorToString(const sf::Socket::Status status) {
   switch (status) {

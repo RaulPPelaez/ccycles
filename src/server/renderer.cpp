@@ -1,4 +1,4 @@
-#include "renderer.h"
+#include "renderer.hpp"
 #include "resources.h"
 #include <SFML/Graphics.hpp>
 #include <map>

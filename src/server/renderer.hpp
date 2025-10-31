@@ -1,19 +1,19 @@
 #pragma once
-#include"server.h"
-#include "game_logic.h"
+#include "game_logic.hpp"
+#include "server.hpp"
 #include <SFML/Graphics.hpp>
 #include <functional>
 
-
-namespace cycles_server{
+namespace cycles_server {
 // Rendering Logic
-class PostProcess{
+class PostProcess {
   sf::Shader postProcessShader;
   sf::Shader bloomShader;
   sf::RenderTexture renderTexture;
   sf::RenderTexture channel1;
+
 public:
-  PostProcess(){}
+  PostProcess() {}
   void create(sf::Vector2i windowSize);
   void apply(sf::RenderWindow &window, sf::RenderTexture &target);
 };
@@ -32,7 +32,8 @@ public:
 
   bool isOpen() const { return window.isOpen(); }
 
-  void handleEvents(std::vector<std::function<void(sf::Event &)>> extraEventHandlers = {});
+  void handleEvents(
+      std::vector<std::function<void(sf::Event &)>> extraEventHandlers = {});
 
   void renderSplashScreen(std::shared_ptr<Game> game);
 
@@ -43,4 +44,4 @@ private:
 
   void renderBanner(std::shared_ptr<Game> game);
 };
-}
+} // namespace cycles_server

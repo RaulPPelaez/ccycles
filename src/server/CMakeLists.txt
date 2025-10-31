@@ -23,5 +23,5 @@ add_library(server_backend server_backend.cpp)
 target_link_libraries(server_backend PUBLIC game_logic configuration)
 
 
-add_executable(server server.cpp)
+add_executable(server server_main.cpp)
 target_link_libraries(server PUBLIC renderer server_backend)

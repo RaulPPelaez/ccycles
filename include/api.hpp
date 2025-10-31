@@ -1,5 +1,5 @@
 #pragma once
-#include "utils.h"
+#include "utils.hpp"
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <string>
@@ -16,8 +16,9 @@ constexpr auto SERVER_IP = "127.0.0.1";
 struct Player {
   std::string name; ///< The name of the player
   sf::Color color;  ///< The color of the player
-  sf::Vector2i position; ///< The position of the player's head in the grid (in cells)
-  Id id; ///< The unique identifier of the player
+  sf::Vector2i
+      position; ///< The position of the player's head in the grid (in cells)
+  Id id;        ///< The unique identifier of the player
 };
 
 // Forward declaration for friend declaration in GameState

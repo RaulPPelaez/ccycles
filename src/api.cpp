@@ -1,4 +1,4 @@
-#include "api.h"
+#include "api.hpp"
 #include <SFML/Network.hpp>
 #include <spdlog/spdlog.h>
 
@@ -21,7 +21,7 @@ GameState::GameState(sf::Packet &packet) {
   for (auto &cell : grid) {
     packet >> cell;
   }
-  //Check that the whole packet was read
+  // Check that the whole packet was read
   if (!packet.endOfPacket()) {
     spdlog::critical("There is still data left in the packet");
     exit(1);
@@ -144,6 +144,5 @@ GameState Connection::receiveGameState() {
 bool Connection::isActive() {
   return socket->getRemoteAddress() != sf::IpAddress::None;
 }
-
 
 } // namespace cycles

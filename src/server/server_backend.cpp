@@ -1,5 +1,5 @@
-#include "game_logic.h"
-#include "server.h"
+#include "game_logic.hpp"
+#include "server.hpp"
 #include <SFML/Network.hpp>
 #include <map>
 #include <memory>

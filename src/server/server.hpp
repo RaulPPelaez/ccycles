@@ -1,7 +1,7 @@
 #pragma once
-#include "api.h"
+#include "api.hpp"
 #include "configuration.hpp"
-#include "game_logic.h"
+#include "game_logic.hpp"
 #include <SFML/Main.hpp>
 #include <spdlog/spdlog.h>
 namespace cycles_server {
