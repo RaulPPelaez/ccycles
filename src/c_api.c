@@ -48,7 +48,7 @@ static int send_all(SOCKET fd, const void *buf, size_t len) {
   return 0;
 }
 
-int send_sfml_string_packet(int sock, const char *s) {
+static int send_sfml_string_packet(int sock, const char *s) {
   uint32_t name_len = (uint32_t)strlen(s);      // no NUL in payload
   uint32_t payload_len = 4u + name_len;         // [len_be][bytes]
   uint32_t packet_size_be = htonl(payload_len); // outer size (SFML frame)
@@ -111,7 +111,7 @@ static int recv_sfml_packet_len(SOCKET fd, uint32_t *out_len) {
   return 0;
 }
 
-int recv_sfml_color(SOCKET fd, Rgb *out) {
+static int recv_sfml_color(SOCKET fd, Rgb *out) {
   if (!out) {
     errno = EINVAL;
     return -1;
@@ -214,7 +214,7 @@ static int rd_string(const uint8_t **p, uint32_t *rem, char **out) {
   return 0;
 }
 
-SOCKET cycles_create_socket(const char *host, const char *port) {
+static SOCKET cycles_create_socket(const char *host, const char *port) {
   ulog_debug("Configuring remote address...");
   // Configure a remote address
   struct addrinfo hints;
