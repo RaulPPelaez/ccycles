@@ -11,6 +11,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // These definitions helps to write cross-platform code
 #if !defined(_WIN32)
 // In UNIX, sockets are file descriptors (int)
@@ -138,3 +142,7 @@ int cycles_recv_game_state(SOCKET sock, GameState *out);
  * @return 0 on success, -1 on failure (check errno)
  */
 int cycles_send_move_i32(Connection *conn, int32_t dir);
+
+#ifdef __cplusplus
+}
+#endif
