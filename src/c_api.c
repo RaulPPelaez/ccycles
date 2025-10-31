@@ -427,5 +427,10 @@ int cycles_recv_game_state(SOCKET sock, GameState *out) {
 }
 
 int cycles_send_move_i32(Connection *conn, int32_t dir) {
+  ulog_trace("Sending move direction: %d", dir);
+  if (!conn) {
+    errno = EINVAL;
+    return -1;
+  }
   return send_sfml_i32_packet(conn->sock, dir);
 }
