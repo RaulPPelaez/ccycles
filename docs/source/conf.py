@@ -7,8 +7,8 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "CCycles"
-copyright = "2025, Raul"
-author = "Raul"
+copyright = "2025, Raul P. Pelaez"
+author = "Raul P. Pelaez"
 
 
 # -- General configuration ---------------------------------------------------

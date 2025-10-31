@@ -11,28 +11,17 @@ The bots communicate with the server with a simple protocol over TCP. The server
    :align: center
    :width: 50%
 
-The networking code as well as graphics are based on the `SFML <https://www.sfml-dev.org/>`_ library.
-
+The networking code is pure POSIX sockets. Graphics are based on the `SDL2 <https://www.libsdl.org/>`_.
+The server renders, updates the game state, and handles the communication with in different threads, using POSIX threads.
 
 Installation
 ------------
-The server and clients are written in C++ and require a C++20 compiler. All dependencies can be installed using the provided conda environment:
+The server and clients are written in C and require a C23 compiler. All dependencies can be installed using the provided conda environment:
 
 .. code-block:: bash
 
     conda env create -f environment.yml
     conda activate cycles
-
-.. warning::
-
-   There is a bug in the latest SFML package for linux (WSL in Windows included). Fixing it requires to manually create a missing symlink to libudev:
-
-   .. code-block:: bash
-
-      mamba install libudev
-      ln -s $CONDA_PREFIX/lib/libudev.so.1 $CONDA_PREFIX/lib/libudev.so.0
-
-   You might have to install the libudev package from conda.
 
 .. warning::
 
@@ -86,7 +75,7 @@ To start a client using the example bot, run the following command:
 
 .. code-block:: bash
 
-    ./build/bin/client <name> 
+    ./build/bin/client_c_simple <name> 
 
 name is the name of the bot. The bot will receive the game state from the server and will respond with its actions.
 The example client will move the cycle in a random-ish direction.
@@ -117,7 +106,7 @@ The following script will start the server and some clients:
 
 		for i in {1..30}
 		do
-		./build/bin/client randomio$i &
+		./build/bin/client_c_simple randomio$i &
 		done
 
 		     

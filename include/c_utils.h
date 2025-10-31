@@ -2,8 +2,8 @@
 #include "c_api.h"
 #include <stdbool.h>
 #include <stdint.h>
-
-uint32_t pcg32(uint64_t *state) {
+/// \cond DO_NOT_DOCUMENT
+static inline uint32_t pcg32(uint64_t *state) {
   // PCG-XSH-RR (32-bit)
   uint64_t oldstate = *state;
   *state = oldstate * 6364136223846793005ULL + 1442695040888963407ULL;
@@ -11,6 +11,7 @@ uint32_t pcg32(uint64_t *state) {
   uint32_t rot = (uint32_t)(oldstate >> 59u);
   return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
 }
+//// \endcond
 
 /**
  * Return a random integer in [0, inclusive_max], or 0 if inclusive_max <= 0.
@@ -76,8 +77,6 @@ static inline cycles_vec2i cycles_get_direction_vector(cycles_direction d) {
     return (cycles_vec2i){0, 0};
   }
 }
-
-enum { NUM_DIRECTIONS = 4 }; ///< Number of valid directions
 
 /**
  * Normalize an integer to a valid cycles_direction value.
