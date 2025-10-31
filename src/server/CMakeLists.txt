@@ -15,7 +15,7 @@ FetchContent_MakeAvailable(yaml-cpp)
 add_library(configuration configuration.cpp configuration.hpp)
 target_link_libraries(configuration PUBLIC yaml-cpp::yaml-cpp)
 
-add_library(game_logic game_logic.cpp game_logic.h)
+add_library(game_logic game_logic.cpp game_logic.hpp)
 add_library(renderer renderer.cpp)
 target_link_libraries(renderer PRIVATE resources::rc)
 
