@@ -44,7 +44,7 @@ A simple bot that always moves north is shown below:
 		    return EXIT_FAILURE;
 		  }
 
-		  Connection conn;
+		  cycles_onnection conn;
 		  if (cycles_connect(name, HOST, PORT, &conn) < 0) {
 		    fprintf(stderr, "Connection failed.\n");
 		    return EXIT_FAILURE;
@@ -54,7 +54,7 @@ A simple bot that always moves north is shown below:
 
 		  // Game loop
 		  for (;;) {
-		    GameState gs;
+		    cycles_game_state gs;
 		    if (cycles_recv_game_state(conn.sock, &gs) < 0) {
 		      fprintf(stderr, "Failed to receive game state.\n");
 		      break;
