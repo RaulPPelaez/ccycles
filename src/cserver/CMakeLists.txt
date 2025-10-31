@@ -1,14 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
 
-# Fetch libyaml
-include(FetchContent)
-FetchContent_Declare(
-  libyaml
-  GIT_REPOSITORY https://github.com/yaml/libyaml.git
-  GIT_TAG 0.2.5
-)
-set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Minimum CMake policy version for dependencies")
-FetchContent_MakeAvailable(libyaml)
 
 find_package(SDL2_ttf REQUIRED)
 find_package(SDL2 REQUIRED)

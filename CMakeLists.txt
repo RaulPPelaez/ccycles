@@ -3,6 +3,16 @@ project(CCycles VERSION 0.2.0 LANGUAGES C CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+# Fetch libyaml v0.2.5 and allow older policies
+include(FetchContent)
+FetchContent_Declare(
+  libyaml
+  GIT_REPOSITORY https://github.com/yaml/libyaml.git
+  GIT_TAG 0.2.5
+)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Minimum CMake policy version for dependencies")
+FetchContent_MakeAvailable(libyaml)
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
