@@ -2,6 +2,20 @@
 
 Writing a bot
 -------------
+The interaction of a client bot and the server consists of the following steps:
+
+1. Connection to the server
+2. Receiving the game state from the server
+3. Sending a player move to the server
+4. Repeat steps 2. and 3. until the game is over
+5. Disconnect
+
+The server will kick clients (severing the connection) for two reasons:
+1. Inactivity: If the client has not send a move in some time
+2. Player termination: If the sent move was invalid (e.g. overlapping with other player)
+
+The game time works in lock-step, the server will wait for reception of all players' moves before moving to the next time step. If a player takes too long to send its move, the player is terminated.
+
 
 To write a bot, you have the following API functions available:
 
