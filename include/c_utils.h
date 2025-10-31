@@ -92,6 +92,10 @@ static inline Direction get_direction_from_value(int v) {
 
 /**
  * Check if a proposed move is valid (inside grid and target cell empty).
+ * @param state Pointer to the game state
+ * @param my_pos Current player position
+ * @param direction Proposed move direction
+ * @return true if the move is valid, false otherwise
  */
 static inline bool is_valid_move(const GameState *state, Vec2i my_pos,
                                  Direction direction) {
