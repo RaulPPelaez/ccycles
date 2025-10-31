@@ -12,6 +12,9 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(yaml-cpp)
 
+find_package(SFML 2.6 COMPONENTS graphics window system network REQUIRED)
+link_libraries(sfml-graphics sfml-window sfml-system sfml-network pthread)
+
 add_library(configuration configuration.cpp configuration.hpp)
 target_link_libraries(configuration PUBLIC yaml-cpp::yaml-cpp)
 

@@ -26,8 +26,35 @@ target_link_libraries(
   test_c_api
   GTest::gtest_main
   c_api
-  server_backend
-  game_logic
-  configuration
+  cserver_lib
+  pthread
 )
 gtest_discover_tests(test_c_api)
+
+# C server tests
+add_executable(test_player test_player.cpp)
+target_include_directories(test_player PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(
+  test_player
+  GTest::gtest_main
+  cserver_lib
+)
+gtest_discover_tests(test_player)
+
+add_executable(test_player_map test_player_map.cpp)
+target_include_directories(test_player_map PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(
+  test_player_map
+  GTest::gtest_main
+  cserver_lib
+)
+gtest_discover_tests(test_player_map)
+
+add_executable(test_c_game_logic test_c_game_logic.cpp)
+target_include_directories(test_c_game_logic PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(
+  test_c_game_logic
+  GTest::gtest_main
+  cserver_lib
+)
+gtest_discover_tests(test_c_game_logic)
