@@ -11,6 +11,7 @@ The interaction of a client bot and the server consists of the following steps:
 5. Disconnect
 
 The server will kick clients (severing the connection) for two reasons:
+
 1. Inactivity: If the client has not send a move in some time
 2. Player termination: If the sent move was invalid (e.g. overlapping with other player)
 
