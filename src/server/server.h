@@ -39,7 +39,7 @@ public:
 
 private:
   int frame = 0;
-  const int max_client_communication_time = 50; // ms
+  const int max_client_communication_time = 100; // ms
 
   bool acceptingClients = true;
 
