@@ -6,8 +6,6 @@
 #include <spdlog/spdlog.h>
 #include <thread>
 
-
-
 using namespace cycles_server;
 
 int main(int argc, char *argv[]) {
