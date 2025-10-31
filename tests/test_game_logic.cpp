@@ -14,7 +14,11 @@ gridHeight: 100
 gridWidth: 100
 maxClients: 60
 )";
-  auto temp_file = std::tmpnam(nullptr);
+  char temp_file[] = "/tmp/config_XXXXXX";
+  if (mkstemp(temp_file) == -1) {
+    throw std::runtime_error("Failed to create temporary config file");
+  }
+
   std::ofstream out(temp_file);
   out << conf_yaml;
   return temp_file;
