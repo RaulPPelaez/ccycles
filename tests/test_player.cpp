@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "cserver/player.h"
-#include "cserver/types.h"
+#include "server/player.h"
+#include "server/types.h"
 }
 
 TEST(PlayerTest, CreatePlayer) {

@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "cserver/player.h"
-#include "cserver/player_map.h"
-#include "cserver/types.h"
+#include "server/player.h"
+#include "server/player_map.h"
+#include "server/types.h"
 }
 
 static Player createTestPlayer(PlayerId id, const char *name, int x, int y) {

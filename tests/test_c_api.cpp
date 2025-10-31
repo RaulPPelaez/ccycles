@@ -1,6 +1,6 @@
 #include "c_api.h"
-#include "cserver/game_logic.h"
-#include "cserver/server.h"
+#include "server/game_logic.h"
+#include "server/server.h"
 #include <chrono>
 #include <cstdlib>
 #include <fstream>

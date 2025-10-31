@@ -3,9 +3,9 @@
 #include <unistd.h>
 
 extern "C" {
-#include "cserver/game_logic.h"
-#include "cserver/player.h"
-#include "cserver/types.h"
+#include "server/game_logic.h"
+#include "server/player.h"
+#include "server/types.h"
 }
 
 TEST(GameLogicTest, CreateGame) {
