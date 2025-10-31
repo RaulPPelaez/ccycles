@@ -50,7 +50,7 @@ typedef struct {
  */
 typedef struct {
   SOCKET sock;                 ///< Socket descriptor
-  cycles_Rgb color;            ///< Assigned player color
+  cycles_rgb color;            ///< Assigned player color
   char name[MAX_NAME_LEN + 1]; ///< Player name (NUL-terminated)
 } cycles_connection;
 
@@ -59,7 +59,7 @@ typedef struct {
  */
 typedef struct {
   char *name;       ///< Player name (heap, NUL-terminated)
-  cycles_Rgb color; ///< Player color
+  cycles_rgb color; ///< Player color
   int32_t x;        ///< Player head X position
   int32_t y;        ///< Player head Y position
   uint32_t id;      ///< Player unique ID
