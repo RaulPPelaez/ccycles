@@ -40,16 +40,16 @@ void GameServer::acceptClients() {
     auto clientSocket = std::make_shared<sf::TcpSocket>();
     if (listener.accept(*clientSocket) == sf::Socket::Done) {
       spdlog::debug("New connection from {}",
-		    clientSocket->getRemoteAddress().toString());
+                    clientSocket->getRemoteAddress().toString());
       // Set to blocking for initial communication
       clientSocket->setBlocking(true);
       // Receive player name
       sf::Packet namePacket;
       if (clientSocket->receive(namePacket) == sf::Socket::Done) {
-	spdlog::debug("Received name packet from client");
+        spdlog::debug("Received name packet from client");
         std::string playerName;
         namePacket >> playerName;
-	spdlog::info("Received player name: {}", playerName);
+        spdlog::info("Received player name: {}", playerName);
         auto id = game->addPlayer(playerName);
         // Send color to the client
         sf::Packet colorPacket;
@@ -64,9 +64,8 @@ void GameServer::acceptClients() {
             false); // Set back to non-blocking for game loop
         clientSockets[id] = clientSocket;
         spdlog::info("New client connected: {} with id {}", playerName, id);
-      }
-      else {
-	spdlog::debug("Failed to receive name from client");
+      } else {
+        spdlog::debug("Failed to receive name from client");
       }
     }
   }
@@ -156,10 +155,12 @@ auto GameServer::sendGameState(auto clientSockets) {
 }
 
 void GameServer::gameLoop() {
+  spdlog::info("Starting game loop");
   sf::Clock clock;
   sf::Clock clientCommunicationClock;
   while (running && !game->isGameOver()) {
     if (clock.getElapsedTime().asMilliseconds() >= 33) { // ~30 fps
+      spdlog::debug("Server ({}): New frame", frame);
       clock.restart();
       std::scoped_lock lock(serverMutex);
       game->setFrame(frame);
@@ -209,4 +210,5 @@ void GameServer::gameLoop() {
       frame++;
     }
   }
+  spdlog::info("Game over, exiting game loop");
 }
