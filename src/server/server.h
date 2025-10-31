@@ -1,7 +1,7 @@
 #pragma once
-#include "game_logic.h"
-#include "configuration.hpp"
 #include "api.h"
+#include "configuration.hpp"
+#include "game_logic.h"
 #include <SFML/Main.hpp>
 #include <spdlog/spdlog.h>
 namespace cycles_server {
@@ -9,8 +9,7 @@ using cycles::Direction;
 using cycles::Id;
 
 // Server Logic
-class GameServer
-{
+class GameServer {
   sf::TcpListener listener;
   std::map<Id, std::shared_ptr<sf::TcpSocket>> clientSockets;
   std::mutex serverMutex;
@@ -21,7 +20,7 @@ class GameServer
 public:
   GameServer(std::shared_ptr<Game> game, Configuration conf);
 
-  ~GameServer(){
+  ~GameServer() {
     stop();
     spdlog::info("Server stopped.");
   }
@@ -32,7 +31,9 @@ public:
 
   inline int getFrame() const { return frame; }
 
-  inline void setAcceptingClients(bool accepting) { acceptingClients = accepting; }
+  inline void setAcceptingClients(bool accepting) {
+    acceptingClients = accepting;
+  }
 
   void acceptClients();
 
