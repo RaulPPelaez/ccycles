@@ -38,7 +38,8 @@ static int rand_int_inclusive(uint64_t *state, int inclusive_max) {
  * @param p Cell coordinates
  * @return true if inside, false if outside
  */
-static inline bool is_inside_grid(const GameState *gs, Vec2i p) {
+static inline bool cycles_is_inside_grid(const cycles_game_state *gs,
+                                         cycles_vec2i p) {
   return (p.x >= 0) && (p.y >= 0) && ((uint32_t)p.x < gs->grid_width) &&
          ((uint32_t)p.y < gs->grid_height);
 }
@@ -48,10 +49,11 @@ static inline bool is_inside_grid(const GameState *gs, Vec2i p) {
  * @param gs Pointer to the game state
  * @param p Cell coordinates
  * @return Cell contents (0 = empty, >0 = player ID)
- * @note Behavior is undefined if p is out of bounds. Use is_inside_grid()
- * first.
+ * @note Behavior is undefined if p is out of bounds. Use
+ * cycles_is_inside_grid() first.
  */
-static inline uint8_t get_grid_cell(const GameState *gs, Vec2i p) {
+static inline uint8_t cycles_get_grid_cell(const cycles_game_state *gs,
+                                           cycles_vec2i p) {
   return gs->grid[(uint32_t)p.y * gs->grid_width + (uint32_t)p.x];
 }
 
@@ -60,34 +62,34 @@ static inline uint8_t get_grid_cell(const GameState *gs, Vec2i p) {
  * @param d Direction
  * @return Unit vector (x,y) where each component is in {-1,0,1}
  */
-static inline Vec2i get_direction_vector(Direction d) {
+static inline cycles_vec2i cycles_get_direction_vector(cycles_direction d) {
   switch (d) {
-  case north:
-    return (Vec2i){0, -1};
-  case east:
-    return (Vec2i){1, 0};
-  case south:
-    return (Vec2i){0, 1};
-  case west:
-    return (Vec2i){-1, 0};
+  case cycles_north:
+    return (cycles_vec2i){0, -1};
+  case cycles_east:
+    return (cycles_vec2i){1, 0};
+  case cycles_south:
+    return (cycles_vec2i){0, 1};
+  case cycles_west:
+    return (cycles_vec2i){-1, 0};
   default:
-    return (Vec2i){0, 0};
+    return (cycles_vec2i){0, 0};
   }
 }
 
 enum { NUM_DIRECTIONS = 4 }; ///< Number of valid directions
 
 /**
- * Normalize an integer to a valid Direction value.
+ * Normalize an integer to a valid cycles_direction value.
  * @param v Input integer (can be negative or out of range)
- * @return Corresponding Direction value
+ * @return Corresponding cycles_direction value
  */
-static inline Direction get_direction_from_value(int v) {
+static inline cycles_direction cycles_get_direction_from_value(int v) {
   /* Normalize to [0, NUM_DIRECTIONS-1] */
   int n = v % NUM_DIRECTIONS;
   if (n < 0)
     n += NUM_DIRECTIONS;
-  return (Direction)n;
+  return (cycles_direction)n;
 }
 
 /**
@@ -97,15 +99,16 @@ static inline Direction get_direction_from_value(int v) {
  * @param direction Proposed move direction
  * @return true if the move is valid, false otherwise
  */
-static inline bool is_valid_move(const GameState *state, Vec2i my_pos,
-                                 Direction direction) {
-  Vec2i d = get_direction_vector(direction);
-  Vec2i new_pos = (Vec2i){my_pos.x + d.x, my_pos.y + d.y};
+static inline bool cycles_is_valid_move(const cycles_game_state *state,
+                                        cycles_vec2i my_pos,
+                                        cycles_direction direction) {
+  cycles_vec2i d = cycles_get_direction_vector(direction);
+  cycles_vec2i new_pos = (cycles_vec2i){my_pos.x + d.x, my_pos.y + d.y};
 
-  if (!is_inside_grid(state, new_pos)) {
+  if (!cycles_is_inside_grid(state, new_pos)) {
     return false;
   }
-  if (get_grid_cell(state, new_pos) != 0) {
+  if (cycles_get_grid_cell(state, new_pos) != 0) {
     return false;
   }
   return true;

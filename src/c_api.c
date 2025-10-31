@@ -111,7 +111,7 @@ static int recv_sfml_packet_len(SOCKET fd, uint32_t *out_len) {
   return 0;
 }
 
-static int recv_sfml_color(SOCKET fd, Rgb *out) {
+static int recv_sfml_color(SOCKET fd, cycles_rgb *out) {
   if (!out) {
     errno = EINVAL;
     return -1;
@@ -251,7 +251,7 @@ static SOCKET cycles_create_socket(const char *host, const char *port) {
 }
 
 int cycles_connect(const char *name, const char *host, const char *port,
-                   Connection *conn) {
+                   cycles_connection *conn) {
 #if defined(_WIN32)
   WSADATA wsaData;
   int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -271,7 +271,7 @@ int cycles_connect(const char *name, const char *host, const char *port,
     return -1;
   }
   ulog_trace("Player name sent.");
-  Rgb color;
+  cycles_rgb color;
   if (recv_sfml_color(conn->sock, &color) != 0) {
     ulog_error("recv() failed. (%d)", GETSOCKETERRNO());
     return -1;
@@ -283,7 +283,7 @@ int cycles_connect(const char *name, const char *host, const char *port,
   return 0;
 }
 
-void cycles_disconnect(Connection *conn) {
+void cycles_disconnect(cycles_connection *conn) {
   if (conn && ISVALIDSOCKET(conn->sock)) {
     CLOSESOCKET(conn->sock);
     conn->sock = -1;
@@ -293,7 +293,7 @@ void cycles_disconnect(Connection *conn) {
 #endif
 }
 
-void free_game_state(GameState *gs) {
+void cycles_free_game_state(cycles_game_state *gs) {
   if (!gs)
     return;
   if (gs->players) {
@@ -310,7 +310,7 @@ void free_game_state(GameState *gs) {
   gs->frame_number = 0;
 }
 
-int cycles_recv_game_state(SOCKET sock, GameState *out) {
+int cycles_recv_game_state(SOCKET sock, cycles_game_state *out) {
   if (!out) {
     errno = EINVAL;
     return -1;
@@ -329,30 +329,31 @@ int cycles_recv_game_state(SOCKET sock, GameState *out) {
       rd_u32(&p, &rem, &out->grid_height) < 0 ||
       rd_u32(&p, &rem, &out->player_count) < 0) {
     free(pkt);
-    free_game_state(out);
+    cycles_free_game_state(out);
     return -1;
   }
   ulog_trace("recv_game_state: grid %ux%u with %u players", out->grid_width,
              out->grid_height, out->player_count);
   // players array
-  if (out->player_count > (UINT32_MAX / (uint32_t)sizeof(Player))) {
+  if (out->player_count > (UINT32_MAX / (uint32_t)sizeof(cycles_player))) {
     free(pkt);
-    free_game_state(out);
+    cycles_free_game_state(out);
     errno = EPROTO;
     return -1;
   }
   {
-    Player *tmp;
+    cycles_player *tmp;
     if (out->players) {
-      tmp = (Player *)realloc(out->players, out->player_count * sizeof(Player));
+      tmp = (cycles_player *)realloc(out->players,
+                                     out->player_count * sizeof(cycles_player));
     } else {
-      tmp = (Player *)calloc(out->player_count, sizeof(Player));
+      tmp = (cycles_player *)calloc(out->player_count, sizeof(cycles_player));
     }
     if (tmp) {
       out->players = tmp;
     } else {
       free(pkt);
-      free_game_state(out);
+      cycles_free_game_state(out);
       return -1;
     }
   }
@@ -376,7 +377,7 @@ int cycles_recv_game_state(SOCKET sock, GameState *out) {
                name, x, y, r, g, b, frame);
     out->players[i].x = x;
     out->players[i].y = y;
-    out->players[i].color = (Rgb){r, g, b};
+    out->players[i].color = (cycles_rgb){r, g, b};
     if (out->players[i].name)
       free(out->players[i].name); // in case of realloc
     out->players[i].name = name;
@@ -426,7 +427,7 @@ int cycles_recv_game_state(SOCKET sock, GameState *out) {
   return 0;
 }
 
-int cycles_send_move_i32(Connection *conn, int32_t dir) {
+int cycles_send_move_i32(cycles_connection *conn, int32_t dir) {
   ulog_trace("Sending move direction: %d", dir);
   if (!conn) {
     errno = EINVAL;

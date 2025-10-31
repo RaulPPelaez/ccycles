@@ -18,24 +18,25 @@ enum { MAX_ATTEMPTS = 200 };
  * @param inertia            Bias for continuing the same direction (>= 0)
  * @param rng_state          RNG state (seeded by caller)
  *
- * @return a valid Direction
+ * @return a valid cycles_direction
  */
-Direction decide_move(const GameState *state, const Player *me,
-                      Direction previous_direction, float inertia,
-                      uint64_t *rng_state) {
+cycles_direction decide_move(const cycles_game_state *state,
+                             const cycles_player *me,
+                             cycles_direction previous_direction, float inertia,
+                             uint64_t *rng_state) {
   int attempts = 0;
   float inertial_damping = 1.0f;
 
-  const Vec2i position = {(int)me->x, (int)me->y};
+  const cycles_vec2i position = {(int)me->x, (int)me->y};
   const uint32_t frame_number = state->frame_number;
 
-  Direction direction;
+  cycles_direction direction;
 
   do {
     if (attempts >= MAX_ATTEMPTS) {
       ulog_error("%s: Failed to find a valid move after %d attempts\n",
                  (me && me->name) ? me->name : "player", MAX_ATTEMPTS);
-      return north; // Give up and return a default direction
+      return cycles_north; // Give up and return a default direction
     }
     int upper = (NUM_DIRECTIONS - 1) +
                 (int)floorf(inertia * inertial_damping + 0.0001f);
@@ -48,10 +49,10 @@ Direction decide_move(const GameState *state, const Player *me,
       proposal = (int)previous_direction;
       inertial_damping = 0.0f;
     }
-    direction = get_direction_from_value(proposal);
+    direction = cycles_get_direction_from_value(proposal);
     attempts++;
-  } while (!is_valid_move(state, position, direction));
-  Vec2i dv = get_direction_vector(direction);
+  } while (!cycles_is_valid_move(state, position, direction));
+  cycles_vec2i dv = cycles_get_direction_vector(direction);
   ulog_debug(
       "%s: Valid move after %d attempt%s, from (%d,%d) to (%d,%d) in frame "
       "%u\n",
@@ -61,7 +62,7 @@ Direction decide_move(const GameState *state, const Player *me,
   return direction;
 }
 
-uint32_t hash_color(Rgb color) {
+uint32_t hash_color(cycles_rgb color) {
   return (uint32_t)color.r << 16 | (uint32_t)color.g << 8 | (uint32_t)color.b;
 }
 
@@ -73,10 +74,10 @@ int main(int argc, char *argv[]) {
     ulog_error("Environment variable CYCLES_PORT not set.");
     return EXIT_FAILURE;
   }
-  ulog_output_level_set_all(ULOG_LEVEL_INFO);
+  ulog_output_level_set_all(ULOG_LEVEL_TRACE);
   ulog_debug("Ready to use Sockets");
 
-  Connection conn;
+  cycles_connection conn;
   if (cycles_connect(name, HOST, PORT, &conn) < 0) {
     ulog_error("connect() failed. (%d)", GETSOCKETERRNO());
     return EXIT_FAILURE;
@@ -90,16 +91,16 @@ int main(int argc, char *argv[]) {
   int32_t direction = -1;
   uint frame = 0;
   for (;;) {
-    GameState gs;
+    cycles_game_state gs;
     if (cycles_recv_game_state(conn.sock, &gs) < 0) {
       ulog_error("recv_game_state() failed. (%d)", GETSOCKETERRNO());
       break;
     }
     ulog_debug("Frame %d: grid %ux%u with %u players", frame, gs.grid_width,
                gs.grid_height, gs.player_count);
-    Player *me = NULL;
+    cycles_player *me = NULL;
     for (uint32_t i = 0; i < gs.player_count; ++i) {
-      Player *p = &gs.players[i];
+      cycles_player *p = &gs.players[i];
       if (hash_color(p->color) == my_hash) {
         me = p;
       }
@@ -109,11 +110,11 @@ int main(int argc, char *argv[]) {
     direction = decide_move(&gs, me, direction, inertia, &rng_state);
     if (cycles_send_move_i32(&conn, direction) < 0) {
       ulog_error("send() failed. (%d)", GETSOCKETERRNO());
-      free_game_state(&gs);
+      cycles_free_game_state(&gs);
       break;
     }
     ulog_debug("Sent move direction %d", direction);
-    free_game_state(&gs);
+    cycles_free_game_state(&gs);
     frame++;
   }
   ulog_debug("Cleaning up...");
