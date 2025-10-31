@@ -1,16 +1,18 @@
 name: cycles
 channels:
   - conda-forge
-  - defaults
+  - nodefaults
 dependencies:
   - python=3.*
   - cmake
   - make
-  - ninja
-  - clangxx
+  - c-compiler
+  - cxx-compiler
   - doxygen
-  - spdlog==1.14.*
-  - sfml==2.*
+  - sdl2
+  - sdl2_ttf
+  - sdl2_gfx
+  - pkg-config
   - pip 
   - pip:
     - breathe==4.35.0
