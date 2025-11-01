@@ -28,6 +28,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+
 include(CMakeRC)
 # Add everything under root_of_project/resources to the resources target
 file(GLOB_RECURSE RESOURCES RELATIVE ${CMAKE_SOURCE_DIR} "${CMAKE_SOURCE_DIR}/resources/*")
@@ -40,6 +41,17 @@ endforeach()
 cmrc_add_resource_library(resources ALIAS resources::rc NAMESPACE cycles_resources ${RESOURCES})
 
 add_subdirectory(third_party)
+# Set default ulog verbosity: INFO for non-Debug, TRACE for Debug builds
+# This defines DEFAULT_ULOG_LEVEL used by the code to configure ulog at runtime
+add_compile_definitions(
+  DEFAULT_ULOG_LEVEL=$<IF:$<CONFIG:Debug>,ULOG_LEVEL_TRACE,ULOG_LEVEL_INFO>
+)
+# Make __FILE__ macro use relative paths instead of absolute paths
+# This makes log messages show "src/file.c" instead of "/full/path/to/src/file.c"
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+  add_compile_options(-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=)
+endif()
+
 add_subdirectory(src)
 enable_testing() # This line allows to call ctest after compilation
 add_subdirectory(tests)
