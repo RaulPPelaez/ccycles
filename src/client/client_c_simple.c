@@ -6,7 +6,9 @@
 #include <time.h>
 #include <ulog.h>
 #define HOST ("127.0.0.1")
-
+#ifndef DEFAULT_ULOG_LEVEL
+#define DEFAULT_ULOG_LEVEL ULOG_LEVEL_INFO
+#endif
 enum { MAX_ATTEMPTS = 200 };
 
 /**
@@ -24,6 +26,12 @@ cycles_direction decide_move(const cycles_game_state *state,
                              const cycles_player *me,
                              cycles_direction previous_direction, float inertia,
                              uint64_t *rng_state) {
+  // If we don't have a valid player (e.g., kicked/disconnected), avoid UB.
+  if (me == NULL) {
+    ulog_error(
+        "decide_move called with NULL player; returning default direction");
+    return cycles_north;
+  }
   int attempts = 0;
   float inertial_damping = 1.0f;
 
@@ -34,7 +42,7 @@ cycles_direction decide_move(const cycles_game_state *state,
 
   do {
     if (attempts >= MAX_ATTEMPTS) {
-      ulog_error("%s: Failed to find a valid move after %d attempts\n",
+      ulog_error("%s: Failed to find a valid move after %d attempts",
                  (me && me->name) ? me->name : "player", MAX_ATTEMPTS);
       return cycles_north; // Give up and return a default direction
     }
@@ -74,7 +82,8 @@ int main(int argc, char *argv[]) {
     ulog_error("Environment variable CYCLES_PORT not set.");
     return EXIT_FAILURE;
   }
-  ulog_output_level_set_all(ULOG_LEVEL_TRACE);
+  // Configure default logging verbosity from CMake
+  ulog_output_level_set_all(DEFAULT_ULOG_LEVEL);
   ulog_debug("Ready to use Sockets");
 
   cycles_connection conn;
@@ -106,6 +115,15 @@ int main(int argc, char *argv[]) {
       }
       ulog_debug("Player %u: '%s' at (%d,%d) color R=%d G=%d B=%d", p->id,
                  p->name, p->x, p->y, p->color.r, p->color.g, p->color.b);
+    }
+    // If our player is no longer present (e.g., died and was removed),
+    // exit gracefully.
+    if (me == NULL) {
+      ulog_info("Player '%s' is no longer in the game (kicked/disconnected). "
+                "Exiting gracefully.",
+                conn.name);
+      cycles_free_game_state(&gs);
+      break;
     }
     direction = decide_move(&gs, me, direction, inertia, &rng_state);
     if (cycles_send_move_i32(&conn, direction) < 0) {
