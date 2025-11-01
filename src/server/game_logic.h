@@ -56,7 +56,7 @@ void game_remove_player(Game *game, PlayerId id);
 
 /**
  * @brief Move all players, detect collisions, update grid
- * @param directions Array indexed by player ID (size 256)
+ * @param directions Array indexed by player ID (size MAX_PLAYERS)
  */
 void game_move_players(Game *game, const Direction *directions);
 

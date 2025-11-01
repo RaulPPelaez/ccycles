@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <thread>
+#include <ulog.h>
 
 // Test fixture that manages a C server instance
 class CApiTest : public ::testing::Test {
@@ -20,6 +21,8 @@ protected:
   GameConfig config;
 
   void SetUp() override {
+    // Set ulog to info to reduce test output
+    ulog_output_level_set_all(ULOG_LEVEL_DEBUG);
     configFile = createTempConfig();
     unsigned seed =
         std::chrono::system_clock::now().time_since_epoch().count() +
@@ -124,7 +127,7 @@ TEST_F(CApiTest, MultipleClientsConnect) {
   EXPECT_STREQ(conn1.name, "Player1");
   EXPECT_STREQ(conn2.name, "Player2");
   EXPECT_STREQ(conn3.name, "Player3");
-  Player *player_ptrs[256];
+  Player *player_ptrs[MAX_PLAYERS];
   uint32_t player_count = game_get_players(game, player_ptrs);
   EXPECT_EQ(player_count, 3u);
 

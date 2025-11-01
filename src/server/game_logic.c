@@ -148,10 +148,10 @@ PlayerId game_add_player(Game *game, const char *name) {
   if (!game || !name) {
     return 0;
   }
-  static Rgb palette[256];
+  static Rgb palette[MAX_PLAYERS];
   static bool palette_initialized = false;
   if (!palette_initialized) {
-    generate_color_palette(palette, 256);
+    generate_color_palette(palette, MAX_PLAYERS);
     palette_initialized = true;
   }
   pthread_mutex_lock(&game->game_mutex);
@@ -168,7 +168,7 @@ PlayerId game_add_player(Game *game, const char *name) {
     }
   } while (*get_cell(game, position.x, position.y) != 0);
   Player player;
-  Rgb color = palette[game->id_counter % 256];
+  Rgb color = palette[game->id_counter % MAX_PLAYERS];
   if (player_create(game->id_counter, name, position, color, &player) != 0) {
     pthread_mutex_unlock(&game->game_mutex);
     return 0;
@@ -209,13 +209,13 @@ void game_move_players(Game *game, const Direction *directions) {
     return;
   }
   game->max_tail_length = 55 + game->frame / 100;
-  Player *player_ptrs[256];
+  Player *player_ptrs[MAX_PLAYERS];
   uint32_t player_count = map_get_all(game->players, player_ptrs);
   if (player_count == 0) {
     return;
   }
-  Vec2i new_positions[256] = {0};
-  bool has_direction[256] = {false};
+  Vec2i new_positions[MAX_PLAYERS] = {0};
+  bool has_direction[MAX_PLAYERS] = {false};
   for (uint32_t i = 0; i < player_count; i++) {
     Player *player = player_ptrs[i];
     PlayerId id = player->id;
@@ -225,7 +225,7 @@ void game_move_players(Game *game, const Direction *directions) {
     new_positions[id].y = player->position.y + dir_vec.y;
     has_direction[id] = true;
   }
-  bool colliding[256] = {false};
+  bool colliding[MAX_PLAYERS] = {false};
   for (uint32_t i = 0; i < player_count; i++) {
     PlayerId id1 = player_ptrs[i]->id;
     if (!has_direction[id1])

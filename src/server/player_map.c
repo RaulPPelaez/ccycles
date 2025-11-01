@@ -9,7 +9,6 @@ PlayerMap *map_create(void) {
   if (!map) {
     return NULL;
   }
-  map->size = 0;
   return map;
 }
 
@@ -61,7 +60,7 @@ uint32_t map_get_all(PlayerMap *map, Player **out_players) {
     return 0;
   }
   uint32_t count = 0;
-  for (int i = 0; i < 256; i++) {
+  for (int i = 0; i < MAX_PLAYERS; i++) {
     if (map->entries[i].occupied) {
       out_players[count++] = &map->entries[i].player;
     }
@@ -73,7 +72,7 @@ static void map_clear(PlayerMap *map) {
   if (!map) {
     return;
   }
-  for (int i = 0; i < 256; i++) {
+  for (int i = 0; i < MAX_PLAYERS; i++) {
     if (map->entries[i].occupied) {
       map_delete(map, i);
     }

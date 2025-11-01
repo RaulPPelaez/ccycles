@@ -11,6 +11,18 @@ extern "C" {
  * @brief Player management functions.
  */
 
+/**
+ * @brief Maximum number of players supported by the server.
+ *
+ * PlayerId is a uint8_t (0-255), so this must not exceed 256.
+ */
+#define MAX_PLAYERS 64
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+_Static_assert(MAX_PLAYERS <= 256,
+               "MAX_PLAYERS must be <= 256 (uint8_t PlayerId)");
+#endif
+
 typedef struct TailNode {
   Vec2i position;
   struct TailNode *next;

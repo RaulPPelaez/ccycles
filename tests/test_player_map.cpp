@@ -138,7 +138,7 @@ TEST(PlayerMapTest, GetAllPlayers) {
   map_insert(map, 2, &p2);
   map_insert(map, 3, &p3);
 
-  Player *players[256];
+  Player *players[MAX_PLAYERS];
   uint32_t count = map_get_all(map, players);
 
   EXPECT_EQ(count, 3);
@@ -205,7 +205,7 @@ TEST(PlayerMapTest, NullMapOperations) {
   map_delete(nullptr, 1);
   EXPECT_EQ(map_size(nullptr), 0);
 
-  Player *players[256];
+  Player *players[MAX_PLAYERS];
   EXPECT_EQ(map_get_all(nullptr, players), 0);
 
   map_destroy(nullptr);

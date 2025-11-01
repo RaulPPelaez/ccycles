@@ -14,7 +14,7 @@ extern "C" {
  * @brief Simple hash map for storing players by ID.
  *
  * Maps uint8_t keys (player IDs) to Player structures.
- * Maximum capacity: 256 players (0-255).
+ * Maximum capacity: MAX_PLAYERS players (0..MAX_PLAYERS-1).
  */
 
 /** Map key type (player ID) */
@@ -33,8 +33,8 @@ typedef struct MapEntry {
  * @brief Player map structure
  */
 typedef struct {
-  MapEntry entries[256]; /* One slot per possible key */
-  uint32_t size;         /* Number of active entries */
+  MapEntry entries[MAX_PLAYERS]; /* One slot per possible key */
+  uint32_t size;                 /* Number of active entries */
 } PlayerMap;
 
 /**

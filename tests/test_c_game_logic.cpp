@@ -30,7 +30,7 @@ TEST(GameLogicTest, AddPlayer) {
   Game *game = game_create(&config);
   PlayerId id = game_add_player(game, "TestPlayer");
   EXPECT_NE(id, 0);
-  Player *players[256];
+  Player *players[MAX_PLAYERS];
   uint32_t count = game_get_players(game, players);
   EXPECT_EQ(count, 1);
   EXPECT_EQ(players[0]->id, id);
@@ -49,7 +49,7 @@ TEST(GameLogicTest, AddMultiplePlayers) {
   EXPECT_NE(id3, 0);
   EXPECT_NE(id1, id2);
   EXPECT_NE(id2, id3);
-  Player *players[256];
+  Player *players[MAX_PLAYERS];
   uint32_t count = game_get_players(game, players);
   EXPECT_EQ(count, 3);
   game_destroy(game);
@@ -60,7 +60,7 @@ TEST(GameLogicTest, RemovePlayer) {
   Game *game = game_create(&config);
   PlayerId id = game_add_player(game, "TestPlayer");
   EXPECT_NE(id, 0);
-  Player *players[256];
+  Player *players[MAX_PLAYERS];
   EXPECT_EQ(game_get_players(game, players), 1);
   game_remove_player(game, id);
   EXPECT_EQ(game_get_players(game, players), 0);
@@ -104,10 +104,10 @@ TEST(GameLogicTest, MovePlayerNorth) {
   Game *game = game_create(&config);
   PlayerId id = game_add_player(game, "TestPlayer");
   ASSERT_NE(id, 0);
-  Player *players[256];
+  Player *players[MAX_PLAYERS];
   game_get_players(game, players);
   Vec2i initial_pos = players[0]->position;
-  Direction directions[256] = {north};
+  Direction directions[MAX_PLAYERS] = {north};
   directions[id] = north;
   if (initial_pos.y > 0) {
     game_move_players(game, directions);
@@ -123,10 +123,10 @@ TEST(GameLogicTest, MovePlayerEast) {
   Game *game = game_create(&config);
   PlayerId id = game_add_player(game, "TestPlayer");
   ASSERT_NE(id, 0);
-  Player *players[256];
+  Player *players[MAX_PLAYERS];
   game_get_players(game, players);
   Vec2i initial_pos = players[0]->position;
-  Direction directions[256] = {east};
+  Direction directions[MAX_PLAYERS] = {east};
   directions[id] = east;
   if (initial_pos.x < 9) {
     game_move_players(game, directions);
@@ -142,9 +142,9 @@ TEST(GameLogicTest, PlayerCollisionWithWall) {
   Game *game = game_create(&config);
   PlayerId id = game_add_player(game, "TestPlayer");
   ASSERT_NE(id, 0);
-  Player *players[256];
+  Player *players[MAX_PLAYERS];
   game_get_players(game, players);
-  Direction directions[256] = {north};
+  Direction directions[MAX_PLAYERS] = {north};
   directions[id] = north;
   for (int i = 0; i < 20; i++) {
     game_move_players(game, directions);
@@ -158,12 +158,12 @@ TEST(GameLogicTest, PlayerHasTailAfterMoving) {
   Game *game = game_create(&config);
   PlayerId id = game_add_player(game, "TestPlayer");
   ASSERT_NE(id, 0);
-  Direction directions[256] = {east};
+  Direction directions[MAX_PLAYERS] = {east};
   directions[id] = east;
   for (int i = 0; i < 5; i++) {
     game_move_players(game, directions);
   }
-  Player *players[256];
+  Player *players[MAX_PLAYERS];
   game_get_players(game, players);
   ASSERT_EQ(game_get_players(game, players), 1);
   TailNode *tail = players[0]->tail_linked_list;
