@@ -18,14 +18,14 @@ extern "C" {
  * @brief Server state
  */
 typedef struct GameServer {
-  Game *game;              ///< Game logic instance (owned externally)
-  GameConfig conf;         ///< Server/game configuration snapshot
-  int listen_socket;       ///< Listening TCP socket
-  int client_sockets[256]; ///< Per-player sockets indexed by PlayerId
-  bool running;            ///< Main loop flag
-  bool accepting;          ///< Whether to accept new clients
-  uint32_t frame;          ///< Current frame number
-  int max_comm_ms;         ///< Max per-frame comm time budget in ms
+  Game *game;                      ///< Game logic instance (owned externally)
+  GameConfig conf;                 ///< Server/game configuration snapshot
+  int listen_socket;               ///< Listening TCP socket
+  int client_sockets[MAX_PLAYERS]; ///< Per-player sockets indexed by PlayerId
+  bool running;                    ///< Main loop flag
+  bool accepting;                  ///< Whether to accept new clients
+  uint32_t frame;                  ///< Current frame number
+  int max_comm_ms;                 ///< Max per-frame comm time budget in ms
 } GameServer;
 
 /**
