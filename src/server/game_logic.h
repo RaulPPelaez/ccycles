@@ -1,57 +1,110 @@
 #pragma once
-#include "server.h"
-#include <map>
-#include <mutex>
-#include <random>
-#include <set>
-#include <vector>
 
-namespace cycles_server {
+#include "player.h"
+#include "player_map.h"
+#include "server_utils.h"
+#include "types.h"
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdint.h>
 
-// Game Logic
-class Game {
-  const Configuration conf;
-  uint max_tail_length = 55;
-  Id idCounter = 1;
-  int frame = 0;
-  bool gameStarted = false;
-  std::map<Id, Player> players;
-  std::vector<sf::Uint8> grid;
-  std::mt19937 rng;
-  std::mutex gameMutex;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-public:
-  Game(Configuration conf)
-      : conf(conf), grid(conf.gridWidth * conf.gridHeight, 0),
-        rng(std::random_device()()) {}
+/**
+ * @file game_logic.h
+ * @brief Core game logic for the Cycles game server (C port).
+ */
 
-  Id addPlayer(const std::string &name);
+/**
+ * @brief Game structure, main state holder
+ */
+typedef struct {
+  GameConfig config;  ///< Game configuration
+  PlayerMap *players; ///< Map of players
+  uint8_t *grid;      ///< Game grid
+  uint32_t frame;     ///< Current frame number
 
-  void removePlayer(Id id);
+  pthread_mutex_t game_mutex;
+  size_t max_tail_length;
+  uint64_t rng_state;
+  PlayerId id_counter;
+  bool game_started;
+} Game;
 
-  void movePlayers(std::map<Id, Direction> directions);
+/**
+ * @brief Create a new game instance
+ */
+Game *game_create(const GameConfig *config);
 
-  const auto &getGrid() { return grid; }
+/**
+ * @brief Destroy game instance and free resources
+ */
+void game_destroy(Game *game);
 
-  auto getPlayers() {
-    std::scoped_lock lock(gameMutex);
-    return players;
-  }
+/**
+ * @brief Add a player at a random position
+ * @return Player ID (0 on failure)
+ */
+PlayerId game_add_player(Game *game, const char *name);
 
-  void setFrame(int frame) { this->frame = frame; }
+/**
+ * @brief Remove a player and clear their trail
+ */
+void game_remove_player(Game *game, PlayerId id);
 
-  int getFrame() { return frame; }
+/**
+ * @brief Move all players, detect collisions, update grid
+ * @param directions Array indexed by player ID (size MAX_PLAYERS)
+ */
+void game_move_players(Game *game, const Direction *directions);
 
-  bool isGameOver() { return gameStarted && players.size() <= 1; }
+/**
+ * @brief Get read-only access to grid data
+ * @return Grid pointer (row-major, size = width * height)
+ */
+const uint8_t *game_get_grid(const Game *game);
 
-private:
+/**
+ * @brief Get grid dimensions
+ */
+void game_get_grid_size(const Game *game, uint32_t *width, uint32_t *height);
 
-  Id &getCell(int x, int y) { return grid[y * conf.gridWidth + x]; }
+/**
+ * @brief Get read-only access to a player
+ * @param id Player ID
+ * @return Pointer to player structure, or NULL if not found
+ */
+const Player *game_get_player(Game *game, PlayerId id);
 
-  bool legalMove(sf::Vector2i newPos);
+/**
+ * @brief
+ */
+/**
+ * @brief Get all active players
+ * @param players Output array (allocated by caller)
+ * @return Number of active players
+ */
+uint32_t game_get_players(Game *game, Player **players);
 
-  std::set<Id> checkCollisions(std::map<Id, sf::Vector2i> newPositions);
+/**
+ * @brief Check if game is over (0 or 1 players remaining)
+ */
+bool game_is_over(const Game *game);
 
-};
+/**
+ * @brief Get/set current frame number
+ */
+uint32_t game_get_frame(const Game *game);
+void game_set_frame(Game *game, uint32_t frame);
 
-} // namespace cycles_server
+/**
+ * @brief Load configuration from YAML file
+ * @return 0 on success, -1 on failure
+ */
+int game_config_load(const char *path, GameConfig *config);
+
+#ifdef __cplusplus
+}
+#endif

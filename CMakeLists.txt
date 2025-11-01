@@ -1,24 +1,33 @@
 cmake_minimum_required(VERSION 3.20)
-project(CCycles VERSION 0.2.0 LANGUAGES C CXX)
+project(CCycles VERSION 1.0.0 LANGUAGES C CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+# Fetch libyaml v0.2.5 and allow older policies
+include(FetchContent)
+FetchContent_Declare(
+  libyaml
+  GIT_REPOSITORY https://github.com/yaml/libyaml.git
+  GIT_TAG 0.2.5
+)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Minimum CMake policy version for dependencies")
+FetchContent_MakeAvailable(libyaml)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_definitions(-DDEBUG)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror -Wno-language-extension-token")
-  add_definitions(-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE)
 endif()
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED True)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 
 include(CMakeRC)
 # Add everything under root_of_project/resources to the resources target
@@ -30,6 +39,18 @@ foreach(RESOURCE ${RESOURCES})
   message(STATUS "Found resource: ${RESOURCE}")
 endforeach()
 cmrc_add_resource_library(resources ALIAS resources::rc NAMESPACE cycles_resources ${RESOURCES})
+
+add_subdirectory(third_party)
+# Set default ulog verbosity: INFO for non-Debug, TRACE for Debug builds
+# This defines DEFAULT_ULOG_LEVEL used by the code to configure ulog at runtime
+add_compile_definitions(
+  DEFAULT_ULOG_LEVEL=$<IF:$<CONFIG:Debug>,ULOG_LEVEL_TRACE,ULOG_LEVEL_INFO>
+)
+# Make __FILE__ macro use relative paths instead of absolute paths
+# This makes log messages show "src/file.c" instead of "/full/path/to/src/file.c"
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+  add_compile_options(-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=)
+endif()
 
 add_subdirectory(src)
 enable_testing() # This line allows to call ctest after compilation

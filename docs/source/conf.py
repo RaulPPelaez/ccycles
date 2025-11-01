@@ -7,13 +7,13 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "CCycles"
-copyright = "2025, Raul"
-author = "Raul"
+copyright = "2025, Raul P. Pelaez"
+author = "Raul P. Pelaez"
 
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
-primary_domain = "cpp"
+primary_domain = "c"
 extensions = ["breathe"]
 
 # Breathe Configuration

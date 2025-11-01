@@ -1,32 +1,80 @@
 #pragma once
-#include "api.h"
-#include <SFML/Main.hpp>
-#include <list>
 
-namespace cycles_server {
-using cycles::Direction;
-using cycles::Id;
+#include "game_logic.h"
+#include "types.h"
+#include <stdbool.h>
+#include <stdint.h>
 
-struct Player {
-  sf::Vector2i position;
-  std::list<sf::Vector2i> tail;
-  sf::Color color;
-  std::string name;
-  Id id;
-  Player() : id(std::rand()) {}
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/**
+ * @file server.h
+ * @brief Network server for the Cycles game (C port).
+ */
 
-struct Configuration {
+/**
+ * @brief Server state
+ */
+typedef struct GameServer {
+  Game *game;                      ///< Game logic instance (owned externally)
+  GameConfig conf;                 ///< Server/game configuration snapshot
+  int listen_socket;               ///< Listening TCP socket
+  int client_sockets[MAX_PLAYERS]; ///< Per-player sockets indexed by PlayerId
+  bool running;                    ///< Main loop flag
+  bool accepting;                  ///< Whether to accept new clients
+  uint32_t frame;                  ///< Current frame number
+  int max_comm_ms;                 ///< Max per-frame comm time budget in ms
+} GameServer;
 
-  int maxClients = 60;
-  int gridWidth = 100;
-  int gridHeight = 100;
-  int gameWidth = 1000;
-  int gameHeight = 1000;
-  int gameBannerHeight = 100;
-  float cellSize = 10;
-  bool enablePostProcessing = false;
-  Configuration(std::string configPath);
-};
-} // namespace cycles_server
+/**
+ * @brief Create a new server instance
+ */
+GameServer *server_create(Game *game, const GameConfig *config);
+
+/**
+ * @brief Destroy server and close all connections
+ */
+void server_destroy(GameServer *server);
+
+/**
+ * @brief Start listening on specified port
+ * @return 0 on success, -1 on failure
+ */
+int server_listen(GameServer *server, uint16_t port);
+
+/**
+ * @brief Run main server loop (blocking)
+ *
+ * Handles: accepting clients, receiving input, updating game, broadcasting
+ * state
+ */
+void server_run(GameServer *server);
+
+/**
+ * @brief Stop the server (causes server_run to exit)
+ */
+void server_stop(GameServer *server);
+
+/**
+ * @brief Enable/disable accepting new clients
+ */
+void server_set_accepting_clients(GameServer *server, bool accepting);
+
+/**
+ * @brief Accept any pending client connections
+ *
+ * Call this in a loop during the splash screen phase to allow clients to
+ * connect before the game starts. Non-blocking.
+ */
+void server_accept_clients(GameServer *server);
+
+/**
+ * @brief Get current frame number
+ */
+uint32_t server_get_frame(const GameServer *server);
+
+#ifdef __cplusplus
+}
+#endif

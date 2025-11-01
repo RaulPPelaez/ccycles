@@ -1,21 +1,41 @@
-include(FetchContent)
+cmake_minimum_required(VERSION 3.14)
 
-set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
-set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
-set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
-FetchContent_Declare(
-  yaml-cpp
-  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-  GIT_TAG 0.8.0
+
+find_package(SDL2_ttf REQUIRED)
+find_package(SDL2 REQUIRED)
+include(FindPkgConfig)
+pkg_check_modules(SDL2_GFX REQUIRED SDL2_gfx)
+# C server library (with C++ resource loader)
+add_library(cserver_lib
+    player.c
+    player_map.c
+    game_logic.c
+    server.c
+    server_utils.c
+    renderer.c
+    resource_loader.cpp
 )
-FetchContent_MakeAvailable(yaml-cpp)
 
-add_library(game_logic OBJECT game_logic.cpp)
-add_library(configuration OBJECT configuration.cpp)
-add_library(renderer OBJECT renderer.cpp)
-target_link_libraries(configuration PUBLIC yaml-cpp::yaml-cpp)
+target_include_directories(cserver_lib PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/include
+    ${SDL2_GFX_INCLUDE_DIRS}
+)
 
-add_executable(server server.cpp)
-target_link_libraries(server PUBLIC game_logic configuration renderer)
-target_link_libraries(renderer PRIVATE resources::rc)
+target_link_directories(cserver_lib PUBLIC
+    ${SDL2_GFX_LIBRARY_DIRS}
+)
+
+target_link_libraries(cserver_lib PUBLIC 
+    pthread 
+    m 
+    yaml
+    SDL2::SDL2
+    SDL2_ttf::SDL2_ttf
+    ${SDL2_GFX_LIBRARIES}
+    resources::rc
+)
+
+# C server executable
+add_executable(server server_main.c)
+target_link_libraries(server PRIVATE cserver_lib)

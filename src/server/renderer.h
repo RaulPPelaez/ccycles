@@ -1,46 +1,64 @@
 #pragma once
-#include"server.h"
+
 #include "game_logic.h"
-#include <SFML/Graphics.hpp>
-#include <functional>
+#include "types.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-namespace cycles_server{
-// Rendering Logic
-class PostProcess{
-  sf::Shader postProcessShader;
-  sf::Shader bloomShader;
-  sf::RenderTexture renderTexture;
-  sf::RenderTexture channel1;
-public:
-  PostProcess(){}
-  void create(sf::Vector2i windowSize);
-  void apply(sf::RenderWindow &window, sf::RenderTexture &target);
-};
+/**
+ * @file renderer.h
+ * @brief SDL-based renderer for the Cycles game server (C port).
+ */
 
-class GameRenderer {
-  sf::RenderWindow window;
-  sf::Font font;
-  sf::RenderTexture renderTexture;
-  const Configuration conf;
-  std::unique_ptr<PostProcess> postProcess;
+/**
+ * @brief Internal renderer structure
+ */
+typedef struct {
+  SDL_Window *window;
+  SDL_Renderer *renderer;
+  TTF_Font *font;
+  GameConfig config;
+  int window_width;
+  int window_height;
+  bool is_open;
+} GameRenderer;
+/**
+ * @brief Create a new SDL renderer
+ */
+GameRenderer *renderer_create(const GameConfig *config);
 
-public:
-  GameRenderer(Configuration conf);
+/**
+ * @brief Destroy renderer and free resources
+ */
+void renderer_destroy(GameRenderer *renderer);
 
-  void render(std::shared_ptr<Game> game);
+/**
+ * @brief Render current game state
+ */
+void renderer_render(GameRenderer *renderer, const Game *game);
 
-  bool isOpen() const { return window.isOpen(); }
+/**
+ * @brief Check if window is open
+ */
+bool renderer_is_open(const GameRenderer *renderer);
 
-  void handleEvents(std::vector<std::function<void(sf::Event &)>> extraEventHandlers = {});
+/**
+ * @brief Poll for events
+ * @param out_space_pressed Set to true if space bar was pressed
+ * @return false if quit event received, true otherwise
+ */
+bool renderer_poll_events(GameRenderer *renderer, bool *out_space_pressed);
 
-  void renderSplashScreen(std::shared_ptr<Game> game);
+/**
+ * @brief Render splash screen (waiting for players)
+ */
+void renderer_render_splash(GameRenderer *renderer, const Game *game);
 
-private:
-  void renderPlayers(std::shared_ptr<Game> game);
-
-  void renderGameOver(std::shared_ptr<Game> game);
-
-  void renderBanner(std::shared_ptr<Game> game);
-};
+#ifdef __cplusplus
 }
+#endif

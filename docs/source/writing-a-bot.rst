@@ -2,82 +2,88 @@
 
 Writing a bot
 -------------
+The interaction of a client bot and the server consists of the following steps:
 
-To write a bot, you need to use the :cpp:class:`cycles::Connection` class to communicate with the server.
-The bot code should continuously read the game state from the server and respond with the desired action by calling :cpp:func:`cycles::Connection::receiveGameState` and :cpp:func:`cycles::Connection::sendMove` respectively.
+1. Connection to the server
+2. Receiving the game state from the server
+3. Sending a player move to the server
+4. Repeat steps 2. and 3. until the game is over
+5. Disconnect
 
-An example of a bot that moves in a random direction is provided in the `src/client/client_randomio.cpp` file.
+The server will kick clients (severing the connection) for two reasons:
 
-.. doxygenclass:: cycles::Connection
-   :members:
+1. Inactivity: If the client has not send a move in some time
+2. Player termination: If the sent move was invalid (e.g. overlapping with other player)
 
-The receive method will return an instance of :cpp:class:`cycles::GameState` that contains the current game state.
+The game time works in lock-step, the server will wait for reception of all players' moves before moving to the next time step. If a player takes too long to send its move, the player is terminated.
 
-.. doxygenstruct:: cycles::GameState
-   :members:
 
-.. doxygenstruct:: cycles::Player
-   :members:
+To write a bot, you have the following API functions available:
 
-.. doxygentypedef:: cycles::Id      
-
+.. doxygenfile:: c_api.h
 
 Example
 *******
 
 A simple bot that always moves north is shown below:
 
-.. code-block:: cpp
+.. code-block:: c
 
-		#include "api.h"
-		#include "utils.h"
-		#include <string>
-		#include <iostream>
+		#include "c_api.h"
+		#include <stdio.h>
+		#include <stdlib.h>
 
-		using namespace cycles;
+		#define HOST "127.0.0.1"
 
-		class BotClient {
-		  Connection connection;
-		  std::string name;
-		  GameState state;
-
-		  void sendMove() {
-		    connection.sendMove(Direction::north);
-		  }
-
-		  void receiveGameState() {
-		    state = connection.receiveGameState();
-		    std::cout<<"There are "<<state.players.size()<<" players"<<std::endl;
-		  }
+		int main(int argc, char *argv[]) {
+		  // Get the port from the environment variable CYCLES_PORT
+		  const char *PORT = getenv("CYCLES_PORT");
+		  const char *name = argc > 1 ? argv[1] : "NorthBot";
 		  
-		public:
-		  BotClient(const std::string &botName) : name(botName) {
-		    connection.connect(name);
-		    if (!connection.isActive()) {
-		      exit(1);
-		    }
+		  if (PORT == NULL) {
+		    fprintf(stderr, "Environment variable CYCLES_PORT not set.\n");
+		    return EXIT_FAILURE;
 		  }
 
-		  void run() {
-		    while (connection.isActive()) {
-		      receiveGameState();
-		      sendMove();
-		    }
+		  cycles_onnection conn;
+		  if (cycles_connect(name, HOST, PORT, &conn) < 0) {
+		    fprintf(stderr, "Connection failed.\n");
+		    return EXIT_FAILURE;
 		  }
 
-		};
+		  printf("Client connected as %s\n", conn.name);
 
-		int main() {
-		  BotClient bot("northton");
-		  bot.run();
-		return 0;
+		  // Game loop
+		  for (;;) {
+		    cycles_game_state gs;
+		    if (cycles_recv_game_state(conn.sock, &gs) < 0) {
+		      fprintf(stderr, "Failed to receive game state.\n");
+		      break;
+		    }
+		    
+		    printf("Frame %u: %u players\n", gs.frame_number, gs.player_count);
+		    
+		    // Always move north
+		    if (cycles_send_move_i32(&conn, north) < 0) {
+		      fprintf(stderr, "Failed to send move.\n");
+		      free_game_state(&gs);
+		      break;
+		    }
+		    
+		    free_game_state(&gs);
+		  }
+
+		  cycles_disconnect(&conn);
+		  return EXIT_SUCCESS;
 		}
 
-A more sophisticated example can be found in the `src/client/client_randomio.cpp` file.
+A more sophisticated example can be found in the `src/client/client_c_simple.c` file.
 
 
 Other utilities
 ---------------
 
 
-.. doxygenfile:: utils.h
+.. doxygenfile:: c_utils.h
+
+		 
