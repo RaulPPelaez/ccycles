@@ -5,7 +5,7 @@ find_package(SDL2_ttf REQUIRED)
 find_package(SDL2 REQUIRED)
 include(FindPkgConfig)
 pkg_check_modules(SDL2_GFX REQUIRED SDL2_gfx)
-# C server library
+# C server library (with C++ resource loader)
 add_library(cserver_lib
     player.c
     player_map.c
@@ -13,6 +13,7 @@ add_library(cserver_lib
     server.c
     server_utils.c
     renderer.c
+    resource_loader.cpp
 )
 
 target_include_directories(cserver_lib PUBLIC
@@ -32,6 +33,7 @@ target_link_libraries(cserver_lib PUBLIC
     SDL2::SDL2
     SDL2_ttf::SDL2_ttf
     ${SDL2_GFX_LIBRARIES}
+    resources::rc
 )
 
 # C server executable

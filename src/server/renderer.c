@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "game_logic.h"
 #include "player.h"
+#include "resource_loader.hpp"
 #include "types.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
@@ -9,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ulog.h>
 
 // TailNode is defined in player.h
 typedef struct TailNode TailNode;
@@ -18,71 +20,56 @@ typedef struct TailNode TailNode;
  */
 GameRenderer *renderer_create(const GameConfig *config) {
   if (!config) {
-    fprintf(stderr, "renderer_create: config is NULL\n");
+    ulog_error("renderer_create: config is NULL");
     return NULL;
   }
-
   GameRenderer *r = (GameRenderer *)calloc(1, sizeof(GameRenderer));
   if (!r) {
-    fprintf(stderr, "renderer_create: failed to allocate memory\n");
+    ulog_error("renderer_create: failed to allocate memory");
     return NULL;
   }
-
   r->config = *config;
   r->window_width = config->game_width;
   r->window_height = config->game_height + 100; // 100 for banner
   r->is_open = true;
-
-  // Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
+    ulog_error("SDL_Init failed: %s", SDL_GetError());
     free(r);
     return NULL;
   }
-
-  // Initialize SDL_ttf
   if (TTF_Init() < 0) {
-    fprintf(stderr, "TTF_Init failed: %s\n", TTF_GetError());
+    ulog_error("TTF_Init failed: %s", TTF_GetError());
     SDL_Quit();
     free(r);
     return NULL;
   }
-
-  // Create window
-  r->window = SDL_CreateWindow("Cycles (C Port)", SDL_WINDOWPOS_UNDEFINED,
+  r->window = SDL_CreateWindow("Cycles", SDL_WINDOWPOS_UNDEFINED,
                                SDL_WINDOWPOS_UNDEFINED, r->window_width,
                                r->window_height, SDL_WINDOW_SHOWN);
   if (!r->window) {
-    fprintf(stderr, "SDL_CreateWindow failed: %s\n", SDL_GetError());
+    ulog_error("SDL_CreateWindow failed: %s", SDL_GetError());
     TTF_Quit();
     SDL_Quit();
     free(r);
     return NULL;
   }
-
-  // Create renderer
   r->renderer = SDL_CreateRenderer(
       r->window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
   if (!r->renderer) {
-    fprintf(stderr, "SDL_CreateRenderer failed: %s\n", SDL_GetError());
+    ulog_error("SDL_CreateRenderer failed: %s", SDL_GetError());
     SDL_DestroyWindow(r->window);
     TTF_Quit();
     SDL_Quit();
     free(r);
     return NULL;
   }
-
-  // Load font (try embedded resource first, then fallback to system font)
-  r->font = TTF_OpenFont("resources/SAIBA-45.ttf", 24);
+  r->font =
+      (TTF_Font *)resource_load_font_from_memory("resources/SAIBA-45.ttf", 24);
   if (!r->font) {
-    // Try a common system font as fallback
-    r->font = TTF_OpenFont("/System/Library/Fonts/Helvetica.ttc", 24);
-    if (!r->font) {
-      fprintf(stderr, "Warning: Failed to load font: %s\n", TTF_GetError());
-      // Continue without font - text rendering will be skipped
-    }
+    ulog_warn("Failed to load font from embedded resources: %s",
+              TTF_GetError());
+    // Proceeding without font
   }
-
   return r;
 }
 
@@ -92,22 +79,17 @@ GameRenderer *renderer_create(const GameConfig *config) {
 void renderer_destroy(GameRenderer *r) {
   if (!r)
     return;
-
   if (r->font) {
     TTF_CloseFont(r->font);
   }
-
   if (r->renderer) {
     SDL_DestroyRenderer(r->renderer);
   }
-
   if (r->window) {
     SDL_DestroyWindow(r->window);
   }
-
   TTF_Quit();
   SDL_Quit();
-
   free(r);
 }
 
@@ -118,22 +100,21 @@ bool renderer_is_open(const GameRenderer *r) { return r && r->is_open; }
 
 /**
  * @brief Poll for events
+ * @param out_space_pressed Set to true if space bar was pressed
+ * @return false if quit event received, true otherwise
  */
 bool renderer_poll_events(GameRenderer *r, bool *out_space_pressed) {
   if (!r)
     return false;
-
   if (out_space_pressed) {
     *out_space_pressed = false;
   }
-
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
     case SDL_QUIT:
       r->is_open = false;
       return false;
-
     case SDL_KEYDOWN:
       if (event.key.keysym.sym == SDLK_ESCAPE) {
         r->is_open = false;
@@ -145,7 +126,6 @@ bool renderer_poll_events(GameRenderer *r, bool *out_space_pressed) {
       break;
     }
   }
-
   return true;
 }
 
@@ -177,10 +157,8 @@ static void render_text(SDL_Renderer *renderer, TTF_Font *font,
                         SDL_Color outline_color, int outline_thickness) {
   if (!font || !text)
     return;
-
   SDL_Surface *surface = NULL;
   SDL_Texture *texture = NULL;
-
   // Render outline if thickness > 0
   if (outline_thickness > 0) {
     // Simple outline: render text in outline color at offsets
@@ -201,7 +179,6 @@ static void render_text(SDL_Renderer *renderer, TTF_Font *font,
       }
     }
   }
-
   // Render main text
   surface = TTF_RenderText_Blended(font, text, color);
   if (surface) {
@@ -221,51 +198,40 @@ static void render_text(SDL_Renderer *renderer, TTF_Font *font,
 static void render_players(GameRenderer *r, const Game *game) {
   if (!r || !game)
     return;
-
   const int banner_height = 100;
   const int offset_y = banner_height;
   const int offset_x = 0;
   const int cell_size = (int)r->config.cell_size;
-
   // Get all active players
-  Player *player_ptrs[256];
+  Player *player_ptrs[MAX_PLAYERS];
   uint32_t player_count = game_get_players((Game *)game, player_ptrs);
-
   if (player_count == 0) {
     return;
   }
-
   for (uint32_t i = 0; i < player_count; i++) {
     const Player *player = player_ptrs[i];
-
     // Draw tail (iterate through linked list)
     TailNode *tail_node = player->tail_linked_list;
     while (tail_node) {
       Vec2i tail_pos = tail_node->position;
       SDL_Rect rect = {tail_pos.x * cell_size + offset_x,
                        tail_pos.y * cell_size + offset_y, cell_size, cell_size};
-
       SDL_SetRenderDrawColor(r->renderer, player->color.r, player->color.g,
                              player->color.b, 255);
       SDL_RenderFillRect(r->renderer, &rect);
       tail_node = tail_node->next;
     }
-
     // Draw head (filled circle with darker color)
     int head_x = player->position.x * cell_size + offset_x;
     int head_y = player->position.y * cell_size + offset_y;
-
     uint8_t darker_r = player->color.r * 0.8;
     uint8_t darker_g = player->color.g * 0.8;
     uint8_t darker_b = player->color.b * 0.8;
-
     draw_filled_circle(r->renderer, head_x, head_y, cell_size, darker_r,
                        darker_g, darker_b);
-
     // Draw head border
     draw_circle_outline(r->renderer, head_x, head_y, cell_size + 1, 3,
                         player->color.r, player->color.g, player->color.b);
-
     // Draw player name
     if (r->font) {
       SDL_Color white = {255, 255, 255, 255};
@@ -282,29 +248,22 @@ static void render_players(GameRenderer *r, const Game *game) {
 static void render_banner(GameRenderer *r, const Game *game) {
   if (!r || !game)
     return;
-
   const int banner_height = 80;
-
   // Draw black banner background
   SDL_Rect banner_rect = {0, 0, r->window_width, banner_height};
   SDL_SetRenderDrawColor(r->renderer, 0, 0, 0, 255);
   SDL_RenderFillRect(r->renderer, &banner_rect);
-
   if (!r->font)
     return;
-
   SDL_Color white = {255, 255, 255, 255};
   SDL_Color black = {0, 0, 0, 255};
-
   // Draw frame number
   char frame_text[64];
   snprintf(frame_text, sizeof(frame_text), "Frame: %u", game_get_frame(game));
   render_text(r->renderer, r->font, frame_text, 10, 10, white, black, 0);
-
   // Draw player count
-  Player *player_ptrs[256];
+  Player *player_ptrs[MAX_PLAYERS];
   uint32_t player_count = game_get_players((Game *)game, player_ptrs);
-
   char players_text[64];
   snprintf(players_text, sizeof(players_text), "Players: %u", player_count);
   render_text(r->renderer, r->font, players_text, 10, 40, white, black, 0);
@@ -316,18 +275,14 @@ static void render_banner(GameRenderer *r, const Game *game) {
 static void render_game_over(GameRenderer *r, const Game *game) {
   if (!r || !game || !r->font)
     return;
-
   SDL_Color white = {255, 255, 255, 255};
   SDL_Color black = {0, 0, 0, 255};
-
   // Draw "Game Over" text
   render_text(r->renderer, r->font, "Game Over", r->window_width / 2 - 100,
               r->window_height / 2 - 30, black, white, 3);
-
   // Draw winner if there's one player left
-  Player *player_ptrs[256];
+  Player *player_ptrs[MAX_PLAYERS];
   uint32_t player_count = game_get_players((Game *)game, player_ptrs);
-
   if (player_count > 0) {
     char winner_text[128];
     snprintf(winner_text, sizeof(winner_text), "Winner: %s",
@@ -343,21 +298,13 @@ static void render_game_over(GameRenderer *r, const Game *game) {
 void renderer_render(GameRenderer *r, const Game *game) {
   if (!r || !game)
     return;
-
-  // Clear screen to black
   SDL_SetRenderDrawColor(r->renderer, 0, 0, 0, 255);
   SDL_RenderClear(r->renderer);
-
-  // Render game elements
   render_players(r, game);
-
   if (game_is_over(game)) {
     render_game_over(r, game);
   }
-
   render_banner(r, game);
-
-  // Present
   SDL_RenderPresent(r->renderer);
 }
 
@@ -367,16 +314,10 @@ void renderer_render(GameRenderer *r, const Game *game) {
 void renderer_render_splash(GameRenderer *r, const Game *game) {
   if (!r || !game)
     return;
-
-  // Clear screen to black
   SDL_SetRenderDrawColor(r->renderer, 0, 0, 0, 255);
   SDL_RenderClear(r->renderer);
-
-  // Render current players
   render_players(r, game);
   render_banner(r, game);
-
-  // Draw splash text
   if (r->font) {
     SDL_Color white = {255, 255, 255, 255};
     SDL_Color black = {0, 0, 0, 255};
@@ -387,7 +328,5 @@ void renderer_render_splash(GameRenderer *r, const Game *game) {
                 r->window_width / 2 - 150, r->window_height / 2 - 20, black,
                 white, 2);
   }
-
-  // Present
   SDL_RenderPresent(r->renderer);
 }
