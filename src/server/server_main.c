@@ -1,11 +1,14 @@
 #include "game_logic.h"
 #include "renderer.h"
 #include "server.h"
+#include <errno.h>
+#include <limits.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <ulog.h>
 
 /**
  * @brief Thread argument for running the server
@@ -33,6 +36,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Failed to load configuration from %s\n", config_path);
     return 1;
   }
+  // Configure default logging verbosity from CMake
+  ulog_output_level_set_all(DEFAULT_ULOG_LEVEL);
   Game *game = game_create(&config);
   if (!game) {
     fprintf(stderr, "Failed to create game instance\n");
@@ -44,13 +49,27 @@ int main(int argc, char *argv[]) {
     game_destroy(game);
     return 1;
   }
-  if (server_listen(server, 12345) != 0) {
-    fprintf(stderr, "Failed to start server on port 12345\n");
+  int port = -1;
+  const char *env_port = getenv("CYCLES_PORT");
+  if (env_port && *env_port) {
+    char *endptr = NULL;
+    errno = 0;
+    long val = strtol(env_port, &endptr, 10);
+    if (errno == 0 && endptr && *endptr == '\0' && val > 0 && val <= 65535) {
+      port = (int)val;
+    } else {
+      fprintf(stderr, "Warning: invalid CYCLES_PORT='%s'.\n", env_port);
+      exit(1);
+    }
+  }
+
+  if (server_listen(server, (uint16_t)port) != 0) {
+    fprintf(stderr, "Failed to start server on port %d\n", port);
     server_destroy(server);
     game_destroy(game);
     return 1;
   }
-  printf("Server listening on port 12345\n");
+  ulog_info("Server listening on port %d", port);
   GameRenderer *renderer = renderer_create(&config);
   if (!renderer) {
     fprintf(stderr, "Failed to create renderer\n");
@@ -72,14 +91,18 @@ int main(int argc, char *argv[]) {
   }
 
   bool accepting_clients = true;
-  printf("Waiting for players... Press SPACE to start the game.\n");
+  ulog_info("Waiting for players... Press SPACE to start the game.");
   while (accepting_clients && renderer_is_open(renderer)) {
     bool space_pressed = false;
     if (!renderer_poll_events(renderer, &space_pressed)) {
-      break;
+      // Quit event received
+      renderer_destroy(renderer);
+      server_destroy(server);
+      game_destroy(game);
+      exit(0);
     }
     if (space_pressed) {
-      printf("Space pressed, stopping client acceptance\n");
+      ulog_info("Space pressed, stopping client acceptance");
       accepting_clients = false;
     }
     renderer_render_splash(renderer, game);
@@ -100,7 +123,7 @@ int main(int argc, char *argv[]) {
     game_destroy(game);
     return 1;
   }
-  printf("Game started!\n");
+  ulog_info("Game started!");
   while (renderer_is_open(renderer)) {
     bool space_pressed = false;
     if (!renderer_poll_events(renderer, &space_pressed)) {
@@ -111,13 +134,12 @@ int main(int argc, char *argv[]) {
   }
 
   // Cleanup
-  printf("Shutting down...\n");
+  ulog_info("Shutting down...");
   server_stop(server);
   pthread_join(server_thread, NULL);
   renderer_destroy(renderer);
   server_destroy(server);
   game_destroy(game);
-
-  printf("Server stopped\n");
+  ulog_info("Server stopped");
   return 0;
 }
