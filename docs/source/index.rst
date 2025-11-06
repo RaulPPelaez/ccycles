@@ -47,7 +47,7 @@ Usage
 -----
 Both the server and the clients expect the environment variable `CYCLES_PORT` to be set to the port where the server will run.
 
-To start the server, run the following command:
+To start the server, run the following command from the project's root directory:
 
 .. code-block:: bash
 
@@ -75,7 +75,7 @@ To start a client using the example bot, run the following command:
 
 .. code-block:: bash
 
-    ./build/bin/client_c_simple <name> 
+    ./build/bin/client_c_simple <host_address> <name>
 
 name is the name of the bot. The bot will receive the game state from the server and will respond with its actions.
 The example client will move the cycle in a random-ish direction.
@@ -106,7 +106,7 @@ The following script will start the server and some clients:
 
 		for i in {1..30}
 		do
-		./build/bin/client_c_simple randomio$i &
+		./build/bin/client_c_simple 127.0.0.1 randomio$i &
 		done
 
 		     
