@@ -5,7 +5,6 @@
 #include <string.h>
 #include <time.h>
 #include <ulog.h>
-#define HOST ("127.0.0.1")
 #ifndef DEFAULT_ULOG_LEVEL
 #define DEFAULT_ULOG_LEVEL ULOG_LEVEL_INFO
 #endif
@@ -77,11 +76,17 @@ uint32_t hash_color(cycles_rgb color) {
 int main(int argc, char *argv[]) {
   // Get the port from the env variable CYCLES_PORT
   const char *PORT = getenv("CYCLES_PORT");
-  const char *name = argc > 1 ? argv[1] : "CClient";
+  if (argc < 3) {
+    ulog_error("Usage: %s <host_address> <name>", argv[0]);
+    return EXIT_FAILURE;
+  }
   if (PORT == NULL) {
     ulog_error("Environment variable CYCLES_PORT not set.");
     return EXIT_FAILURE;
   }
+  const char *HOST = argv[1];
+  const char *name = argv[2];
+
   // Configure default logging verbosity from CMake
   ulog_output_level_set_all(DEFAULT_ULOG_LEVEL);
   ulog_debug("Ready to use Sockets");
