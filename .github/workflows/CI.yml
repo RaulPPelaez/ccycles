@@ -24,7 +24,7 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         echo "  - pthreads-win32" >> environment.yml
-        
+
     - name: Show dependency file
       run: cat environment.yml
       
@@ -34,6 +34,7 @@ jobs:
         environment-file: environment.yml
         activate-environment: cycles
         auto-activate-base: false
+        conda-remove-defaults: true
 
     - name: List environment
       run: |
