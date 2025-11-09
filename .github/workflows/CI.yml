@@ -28,7 +28,6 @@ jobs:
       with:
         environment-file: environment.yml
         activate-environment: cycles
-        auto-activate-base: false
         
     - name: List environment
       run: |
