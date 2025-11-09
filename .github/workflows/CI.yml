@@ -20,16 +20,6 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Tweak environment.yml in OSX
-      if: runner.os == 'macos'
-      run: sed -i '' '/libudev/d' environment.yml
-
-    - name: Tweak environment.yml in Windows
-      if: runner.os == 'windows'
-      shell: bash -el {0}
-      run: sed -i '/libudev/d' environment.yml
-
-      
     - name: Show dependency file
       run: cat environment.yml
       
@@ -49,10 +39,6 @@ jobs:
     
     - name: Configure and compile the library
       run: |
-        if [ "${{ runner.os }}" == "Linux" ]; then
-          # Fix sfml bug (Linux only)
-          ln -s $CONDA_PREFIX/lib/libudev.so.1 $CONDA_PREFIX/lib/libudev.so.0
-        fi
         mkdir build && cd build
         cmake -DCMAKE_VERBOSE_MAKEFILE=yes -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -G Ninja ..
         cmake --build .
