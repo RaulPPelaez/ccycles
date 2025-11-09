@@ -10,9 +10,11 @@
 
 // Windows-specific includes
 #ifdef _WIN32
+#include <BaseTsd.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 // Windows compatibility wrappers
+typedef SSIZE_T ssize_t;
 #define close(s) closesocket(s)
 #define usleep(us) Sleep((us) / 1000)
 #define useconds_t unsigned int
