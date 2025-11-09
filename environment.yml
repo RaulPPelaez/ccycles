@@ -6,6 +6,7 @@ dependencies:
   - python=3.*
   - cmake
   - make
+  - ninja
   - c-compiler
   - cxx-compiler
   - doxygen
