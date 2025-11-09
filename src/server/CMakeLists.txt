@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
-
+# Find required packages
+find_package(Threads REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_gfx REQUIRED)
@@ -21,14 +22,18 @@ target_include_directories(cserver_lib PUBLIC
 )
 
 target_link_libraries(cserver_lib PUBLIC 
-    pthread 
-    m 
+    Threads::Threads
     yaml
     SDL2::SDL2
     SDL2_ttf::SDL2_ttf
     SDL2_gfx::SDL2_gfx
     resources::rc
 )
+
+# Link math library on Unix-like systems (not needed on Windows)
+if(UNIX)
+  target_link_libraries(cserver_lib PUBLIC m)
+endif()
 
 # C server executable
 add_executable(server server_main.c)
