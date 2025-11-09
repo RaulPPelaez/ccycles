@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
   uint64_t rng_state = ((uint64_t)my_hash << 32) | (uint64_t)time(NULL);
   float inertia = rand_int_inclusive(&rng_state, 50);
   int32_t direction = -1;
-  uint frame = 0;
+  uint32_t frame = 0;
   for (;;) {
     cycles_game_state gs;
     if (cycles_recv_game_state(conn.sock, &gs) < 0) {
