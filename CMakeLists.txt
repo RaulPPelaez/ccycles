@@ -5,6 +5,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Fetch libyaml v0.2.5 and allow older policies
 include(FetchContent)
+
+# Disable libyaml tests and examples
+set(BUILD_TESTING_LIBYAML OFF CACHE BOOL "Disable libyaml tests" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static libraries" FORCE)
+
 FetchContent_Declare(
   libyaml
   GIT_REPOSITORY https://github.com/yaml/libyaml.git
