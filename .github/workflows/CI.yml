@@ -20,6 +20,11 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Add pthreads for Windows
+      if: runner.os == 'Windows'
+      run: |
+        echo "  - pthreads-win32" >> environment.yml
+        
     - name: Show dependency file
       run: cat environment.yml
       
@@ -29,7 +34,7 @@ jobs:
         environment-file: environment.yml
         activate-environment: cycles
         auto-activate-base: false
-        
+
     - name: List environment
       run: |
         conda list
@@ -37,7 +42,7 @@ jobs:
     - name: Configure and compile the library
       run: |
         cmake -DCMAKE_VERBOSE_MAKEFILE=yes -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -B build
-        cmake --build build
+        cmake --build build --parallel
 
     - name: Run tests
       run: |
