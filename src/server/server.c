@@ -13,11 +13,28 @@
 #include <BaseTsd.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
 // Windows compatibility wrappers
 typedef SSIZE_T ssize_t;
 #define close(s) closesocket(s)
 #define usleep(us) Sleep((us) / 1000)
 #define useconds_t unsigned int
+
+// Windows implementation of gettimeofday
+static int gettimeofday(struct timeval *tv, void *tz) {
+  (void)tz;
+  FILETIME ft;
+  GetSystemTimeAsFileTime(&ft);
+  unsigned long long tmpres = 0;
+  tmpres |= ft.dwHighDateTime;
+  tmpres <<= 32;
+  tmpres |= ft.dwLowDateTime;
+  tmpres /= 10; // convert to microseconds
+  tmpres -= 11644473600000000ULL; // convert from Windows epoch to Unix epoch
+  tv->tv_sec = (long)(tmpres / 1000000UL);
+  tv->tv_usec = (long)(tmpres % 1000000UL);
+  return 0;
+}
 #else
 // POSIX includes
 #include <fcntl.h>

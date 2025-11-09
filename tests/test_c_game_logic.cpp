@@ -1,6 +1,8 @@
 #include <fstream>
 #include <gtest/gtest.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 extern "C" {
 #include "server/game_logic.h"
