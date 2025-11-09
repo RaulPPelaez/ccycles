@@ -5,6 +5,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Fetch libyaml v0.2.5 and allow older policies
 include(FetchContent)
+
+
 FetchContent_Declare(
   libyaml
   GIT_REPOSITORY https://github.com/yaml/libyaml.git
@@ -20,8 +22,13 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_definitions(-DDEBUG)
 endif()
 
-set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED True)
+
+# Enable M_PI and other math constants on Windows
+if(WIN32)
+  add_compile_definitions(_USE_MATH_DEFINES)
+endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

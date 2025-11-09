@@ -9,6 +9,23 @@
 #include <thread>
 #include <ulog.h>
 
+#ifdef _WIN32
+#include <io.h>
+#include <windows.h>
+// Windows doesn't have setenv/unsetenv, use _putenv
+static int setenv(const char *name, const char *value, int overwrite) {
+  (void)overwrite;
+  std::string env = std::string(name) + "=" + value;
+  return _putenv(env.c_str());
+}
+static int unsetenv(const char *name) {
+  std::string env = std::string(name) + "=";
+  return _putenv(env.c_str());
+}
+#else
+#include <unistd.h>
+#endif
+
 // Test fixture that manages a C server instance
 class CApiTest : public ::testing::Test {
 protected:
@@ -93,17 +110,25 @@ gridWidth: 50
 maxClients: 10
 enablePostProcessing: false
 )";
+#ifdef _WIN32
+    char temp_path[MAX_PATH];
+    char temp_file[MAX_PATH];
+    GetTempPathA(MAX_PATH, temp_path);
+    GetTempFileNameA(temp_path, "ccycles_test_", 0, temp_file);
+    std::string temp_file_str(temp_file);
+#else
     char temp_template[] = "/tmp/ccycles_test_XXXXXX";
     int fd = mkstemp(temp_template);
     if (fd == -1) {
       throw std::runtime_error("Failed to create temporary config file");
     }
-    std::string temp_file(temp_template);
-    close(fd);
-    std::ofstream out(temp_file);
+    std::string temp_file_str(temp_template);
+    ::close(fd);
+#endif
+    std::ofstream out(temp_file_str);
     out << conf_yaml;
     out.close();
-    return temp_file;
+    return temp_file_str;
   }
 };
 

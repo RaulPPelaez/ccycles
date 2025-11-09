@@ -1,31 +1,81 @@
 #include "server.h"
 #include "player.h"
 #include <errno.h>
-#include <fcntl.h>
-#include <netinet/in.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ulog.h>
+
+// Windows-specific includes
+#ifdef _WIN32
+#include <BaseTsd.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
+// Windows compatibility wrappers
+typedef SSIZE_T ssize_t;
+#define close(s) closesocket(s)
+#define usleep(us) Sleep((us) / 1000)
+#define useconds_t unsigned int
+
+// Windows implementation of gettimeofday
+static int gettimeofday(struct timeval *tv, void *tz) {
+  (void)tz;
+  FILETIME ft;
+  GetSystemTimeAsFileTime(&ft);
+  unsigned long long tmpres = 0;
+  tmpres |= ft.dwHighDateTime;
+  tmpres <<= 32;
+  tmpres |= ft.dwLowDateTime;
+  tmpres /= 10;                   // convert to microseconds
+  tmpres -= 11644473600000000ULL; // convert from Windows epoch to Unix epoch
+  tv->tv_sec = (long)(tmpres / 1000000UL);
+  tv->tv_usec = (long)(tmpres % 1000000UL);
+  return 0;
+}
+#else
+// POSIX includes
+#include <fcntl.h>
+#include <netinet/in.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <ulog.h>
 #include <unistd.h>
+#endif
 
 // Length-prefixed framing constants
 enum { NET_MAX_PACKET = 32 * 1024 * 1024 };
 enum { NET_MAX_STRING = 16 * 1024 * 1024 };
 
 static int set_nonblocking(int sock) {
+#ifdef _WIN32
+  u_long mode = 1;
+  return ioctlsocket(sock, FIONBIO, &mode);
+#else
   int flags = fcntl(sock, F_GETFL, 0);
   if (flags < 0)
     return -1;
   if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) < 0)
     return -1;
   return 0;
+#endif
+}
+
+static int set_blocking(int sock) {
+#ifdef _WIN32
+  u_long mode = 0;
+  return ioctlsocket(sock, FIONBIO, &mode);
+#else
+  int flags = fcntl(sock, F_GETFL, 0);
+  if (flags < 0)
+    return -1;
+  if (fcntl(sock, F_SETFL, flags & ~O_NONBLOCK) < 0)
+    return -1;
+  return 0;
+#endif
 }
 
 static int send_all(int sock, const void *buf, size_t len) {
@@ -315,8 +365,7 @@ void server_accept_clients(GameServer *s) {
     }
     ulog_debug("accept_clients: accepted new client socket %d", client_sock);
     // Set to blocking for handshake
-    int flags = fcntl(client_sock, F_GETFL, 0);
-    fcntl(client_sock, F_SETFL, flags & ~O_NONBLOCK);
+    set_blocking(client_sock);
     // Receive name
     char *name = NULL;
     ulog_trace("accept_clients: receiving player name");

@@ -6,6 +6,9 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
+// Windows doesn't have ssize_t, define it as a signed type matching size_t
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
 #else
 #include <arpa/inet.h>
 #include <errno.h>
