@@ -28,22 +28,15 @@ jobs:
       with:
         environment-file: environment.yml
         activate-environment: cycles
+        auto-activate-base: false
         
     - name: List environment
       run: |
         conda list
     
-    - name: Configure and compile the library (linux and macOS)
-      if: runner.os != 'Windows'
+    - name: Configure and compile the library
       run: |
-        cmake -DCMAKE_VERBOSE_MAKEFILE=yes -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -G Ninja -B build
-        cmake --build build
-        
-    - name: Configure and compile the library (Windows)
-      if: runner.os == 'Windows'
-      shell: powershell
-      run: |
-        cmake -DCMAKE_VERBOSE_MAKEFILE=yes -DCMAKE_INSTALL_PREFIX=$env:CONDA_PREFIX -G Ninja -B build
+        cmake -DCMAKE_VERBOSE_MAKEFILE=yes -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -B build
         cmake --build build
 
     - name: Run tests
