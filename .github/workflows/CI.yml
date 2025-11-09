@@ -11,9 +11,6 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu", "macos", "windows"]
-    defaults:
-      run:
-        shell: bash -el {0}
     steps:
     - name: Check out
       uses: actions/checkout@v4
@@ -33,12 +30,18 @@ jobs:
       run: |
         conda list
     
-    - name: Configure and compile the library
+    - name: Configure and compile the library (linux and macOS)
+      if: runner.os != 'Windows'
       run: |
-        mkdir build && cd build
-        cmake -DCMAKE_VERBOSE_MAKEFILE=yes -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -G Ninja ..
-        cmake --build .
-                
+        cmake -DCMAKE_VERBOSE_MAKEFILE=yes -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -G Ninja -B build
+        cmake --build build
+        
+    - name: Configure and compile the library (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        cmake -DCMAKE_VERBOSE_MAKEFILE=yes -DCMAKE_INSTALL_PREFIX=$env:CONDA_PREFIX -G Ninja -B build
+        cmake --build build
+
     - name: Run tests
       run: |
         cd build
