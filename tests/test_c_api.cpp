@@ -11,7 +11,7 @@
 
 #ifdef _WIN32
 #include <io.h>
-#define close _close
+#include <windows.h>
 // Windows doesn't have setenv/unsetenv, use _putenv
 static int setenv(const char *name, const char *value, int overwrite) {
   (void)overwrite;
@@ -22,6 +22,8 @@ static int unsetenv(const char *name) {
   std::string env = std::string(name) + "=";
   return _putenv(env.c_str());
 }
+#else
+#include <unistd.h>
 #endif
 
 // Test fixture that manages a C server instance
@@ -121,7 +123,7 @@ enablePostProcessing: false
       throw std::runtime_error("Failed to create temporary config file");
     }
     std::string temp_file_str(temp_template);
-    close(fd);
+    ::close(fd);
 #endif
     std::ofstream out(temp_file_str);
     out << conf_yaml;

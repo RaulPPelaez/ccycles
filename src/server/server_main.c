@@ -10,6 +10,10 @@
 #include <time.h>
 #include <ulog.h>
 
+#ifdef _WIN32
+#pragma comment(lib, "pthread.lib")
+#endif
+
 /**
  * @brief Thread argument for running the server
  */

@@ -1,6 +1,9 @@
 #include <fstream>
 #include <gtest/gtest.h>
-#ifndef _WIN32
+#ifdef _WIN32
+#include <windows.h>
+#include <io.h>
+#else
 #include <unistd.h>
 #endif
 
@@ -9,6 +12,28 @@ extern "C" {
 #include "server/player.h"
 #include "server/types.h"
 }
+
+#ifdef _WIN32
+static std::string create_temp_file(const char *prefix) {
+  char temp_path[MAX_PATH];
+  char temp_file[MAX_PATH];
+  GetTempPathA(MAX_PATH, temp_path);
+  GetTempFileNameA(temp_path, prefix, 0, temp_file);
+  return std::string(temp_file);
+}
+#else
+static std::string create_temp_file(const char *tmpl_suffix) {
+  std::string tmpl = std::string("/tmp/") + tmpl_suffix;
+  std::vector<char> tmpl_buf(tmpl.begin(), tmpl.end());
+  tmpl_buf.push_back('\0');
+  int fd = mkstemp(tmpl_buf.data());
+  if (fd == -1) {
+    throw std::runtime_error("mkstemp failed");
+  }
+  ::close(fd);
+  return std::string(tmpl_buf.data());
+}
+#endif
 
 TEST(GameLogicTest, CreateGame) {
   GameConfig config = {100, 100, 60, 1000, 1000, 10.0f, false};
@@ -241,16 +266,13 @@ TEST(GameLogicTest, ConfigLoadFromFile) {
                      "gridHeight: 100\n"
                      "gridWidth: 100\n"
                      "maxClients: 60\n";
-  char tmpl[] = "/tmp/ccycles_config_XXXXXX";
-  int fd = mkstemp(tmpl);
-  ASSERT_NE(fd, -1) << "Failed to create temporary config file";
-  close(fd);
+  std::string temp_file = create_temp_file("ccycles_config_XXXXXX");
   {
-    std::ofstream out(tmpl);
+    std::ofstream out(temp_file);
     out << yaml;
   }
   GameConfig config;
-  int result = game_config_load(tmpl, &config);
+  int result = game_config_load(temp_file.c_str(), &config);
   EXPECT_EQ(result, 0);
   EXPECT_EQ(config.grid_width, 100);
   EXPECT_EQ(config.grid_height, 100);
@@ -277,14 +299,11 @@ TEST(GameLogicTest, ConfigLoadNullConfig) {
                      "gridHeight: 100\n"
                      "gridWidth: 100\n"
                      "maxClients: 60\n";
-  char tmpl[] = "/tmp/ccycles_config_XXXXXX";
-  int fd = mkstemp(tmpl);
-  ASSERT_NE(fd, -1) << "Failed to create temporary config file";
-  close(fd);
+  std::string temp_file = create_temp_file("ccycles_config_XXXXXX");
   {
-    std::ofstream out(tmpl);
+    std::ofstream out(temp_file);
     out << yaml;
   }
-  int result = game_config_load(tmpl, nullptr);
+  int result = game_config_load(temp_file.c_str(), nullptr);
   EXPECT_EQ(result, -1);
 }

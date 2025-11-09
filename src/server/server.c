@@ -29,7 +29,7 @@ static int gettimeofday(struct timeval *tv, void *tz) {
   tmpres |= ft.dwHighDateTime;
   tmpres <<= 32;
   tmpres |= ft.dwLowDateTime;
-  tmpres /= 10; // convert to microseconds
+  tmpres /= 10;                   // convert to microseconds
   tmpres -= 11644473600000000ULL; // convert from Windows epoch to Unix epoch
   tv->tv_sec = (long)(tmpres / 1000000UL);
   tv->tv_usec = (long)(tmpres % 1000000UL);
