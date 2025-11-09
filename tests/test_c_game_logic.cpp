@@ -1,8 +1,8 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #ifdef _WIN32
-#include <windows.h>
 #include <io.h>
+#include <windows.h>
 #else
 #include <unistd.h>
 #endif
