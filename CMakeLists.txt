@@ -6,9 +6,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # Fetch libyaml v0.2.5 and allow older policies
 include(FetchContent)
 
-# Disable libyaml tests and examples
-set(BUILD_TESTING_LIBYAML OFF CACHE BOOL "Disable libyaml tests" FORCE)
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static libraries" FORCE)
 
 FetchContent_Declare(
   libyaml
@@ -27,6 +24,11 @@ endif()
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED True)
+
+# Enable M_PI and other math constants on Windows
+if(WIN32)
+  add_compile_definitions(_USE_MATH_DEFINES)
+endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
