@@ -9,10 +9,6 @@
 #include <string.h>
 #include <yaml.h>
 
-#ifdef _WIN32
-#pragma comment(lib, "pthread.lib")
-#endif
-
 struct Game {
   GameConfig config;
   PlayerMap *players;
